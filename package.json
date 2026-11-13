@@ -1,0 +1,13 @@
+{
+  "name": "my-food-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "dev": "pnpm --filter @my_food/database build && pnpm -r --parallel --if-present dev",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm --filter @my_food/database build && pnpm -r --if-present typecheck",
+    "verify": "pnpm --filter @my_food/database build && pnpm --filter @my_food/server verify && pnpm --filter @my_food/ui verify",
+    "db:generate": "pnpm --filter @my_food/database db:generate",
+    "db:migrate": "pnpm --filter @my_food/database db:migrate"
+  }
+}

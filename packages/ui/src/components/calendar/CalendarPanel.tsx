@@ -1,0 +1,93 @@
+import { useCallback, useEffect } from "react";
+import { CalendarGrid } from "./CalendarGrid.js";
+import { CalendarHeader, WeekdayRow } from "./CalendarHeader.js";
+import { useCalendarStore } from "../../stores/calendarStore.js";
+import { useRecipeStore } from "../../stores/recipeStore.js";
+import { useUiStore } from "../../stores/uiStore.js";
+import { shiftMonth } from "../../utils/date.js";
+
+/**
+ * The calendar panel.
+ *
+ * Loading calendar data is driven by the displayed month, so navigating
+ * between months always refreshes the schedule data.
+ */
+export function CalendarPanel() {
+  const month = useCalendarStore((state) => state.month);
+  const year = useCalendarStore((state) => state.year);
+  const recipes = useCalendarStore((state) => state.recipes);
+  const status = useCalendarStore((state) => state.status);
+  const error = useCalendarStore((state) => state.error);
+  const load = useCalendarStore((state) => state.load);
+
+  const selectRecipe = useRecipeStore((state) => state.select);
+  const openScheduleModal = useUiStore((state) => state.openScheduleModal);
+  const setDrawerOpen = useUiStore((state) => state.setDrawerOpen);
+  const setMonth = useCalendarStore((state) => state.setMonth);
+  const navigate = useUiStore((state) => state.navigate);
+
+  // The displayed month drives the load, so navigating only has to change the
+  // month — the effect below fetches the data exactly once.
+  useEffect(() => {
+    void load(month, year);
+  }, [load, month, year]);
+
+  const goToMonth = useCallback(
+    (offset: number) => {
+      const target = shiftMonth(month, year, offset);
+      setMonth(target.month, target.year);
+    },
+    [month, year, setMonth],
+  );
+
+  const goToToday = useCallback(() => {
+    const now = new Date();
+    setMonth(now.getMonth() + 1, now.getFullYear());
+  }, [setMonth]);
+
+  const handleSelectDate = useCallback(
+    (date: string) => {
+      openScheduleModal({ mode: "existing", date });
+    },
+    [openScheduleModal],
+  );
+
+  const handleSelectRecipe = useCallback(
+    (recipeId: string) => {
+      navigate(() => {
+        selectRecipe(recipeId);
+        setDrawerOpen(true);
+      });
+    },
+    [selectRecipe, setDrawerOpen, navigate],
+  );
+
+  return (
+    <section className="flex min-h-0 flex-1 flex-col bg-white" aria-label="Calendar">
+      <CalendarHeader
+        month={month}
+        year={year}
+        busy={status === "loading"}
+        onPrevious={() => goToMonth(-1)}
+        onNext={() => goToMonth(1)}
+        onToday={goToToday}
+      />
+
+      <WeekdayRow />
+
+      {error ? (
+        <div role="alert" className="m-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </div>
+      ) : null}
+
+      <CalendarGrid
+        recipes={recipes}
+        month={month}
+        year={year}
+        onSelectDate={handleSelectDate}
+        onSelectRecipe={handleSelectRecipe}
+      />
+    </section>
+  );
+}
