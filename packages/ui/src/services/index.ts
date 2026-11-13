@@ -99,6 +99,14 @@ export const authService = {
    * sign-in with the provider.
    */
   async requestMagicLink(email: string): Promise<void> {
-    await api.post<{ ok: boolean }>("/api/auth/magic-link", { email }, { anonymous: true });
+    // console.log('EMAIL RECIEVED:')
+    // console.log(email)
+    // return
+    try {
+      await api.post<{ ok: boolean }>("/api/auth/magic-link", { email }, { anonymous: true });      
+    } catch (error) {
+      console.log("ERROR:")
+      console.log(error)
+    }
   },
 };

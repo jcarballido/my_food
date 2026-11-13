@@ -34,6 +34,7 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
       });
     }
 
+
     const { error } = await fastify.supabase.auth.signInWithOtp({
       email,
       options: {

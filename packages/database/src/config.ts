@@ -1,3 +1,17 @@
+import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const packageRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../",
+);
+
+dotenv.config({
+  path: path.join(packageRoot, ".env"),
+  quiet: true,
+});
+
 export function getDatabaseUrl(env: NodeJS.ProcessEnv = process.env): string {
   const databaseUrl = env.DATABASE_URL?.trim();
 

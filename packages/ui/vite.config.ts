@@ -7,6 +7,13 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    // proxy: {
+    //   "/server": {
+    //     target: "http://localhost:3001",
+    //     changeOrigin: true,
+    //     rewrite: (path) => path.replace(/^\/server/, ""),
+    //   },
+    // },
   },
   build: {
     outDir: "dist",
