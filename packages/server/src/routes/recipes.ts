@@ -80,11 +80,12 @@ export async function recipeRoutes(
     const body = recipeUpdateSchema.safeParse(request.body);
     if (!body.success) return validationError(reply, body.error);
 
-    const { name, notes, url, ingredients } = body.data;
+    const { name, notes, url, icon, ingredients } = body.data;
     const recipe = await service.updateRecipe(params.data.id, {
       name,
       notes,
       url,
+      icon,
       updatedBy: request.authUser!.id,
       ingredients: ingredients?.map((ingredient) => ({
         name: ingredient.name,

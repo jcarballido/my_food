@@ -9,6 +9,7 @@ export {
   type DatabaseSchema,
 } from "./db.js";
 export {
+  RECIPE_ICONS,
   recipeIngredients,
   recipeIngredientsRelations,
   recipeSchedules,
@@ -19,6 +20,7 @@ export {
   type NewRecipeIngredient,
   type NewRecipeSchedule,
   type Recipe,
+  type RecipeIcon,
   type RecipeIngredient,
   type RecipeSchedule,
 } from "./schema.js";

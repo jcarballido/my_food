@@ -121,6 +121,7 @@ A recipe contains:
 - Unique name.
 - Optional notes.
 - Optional URL.
+- Icon (`utensils`, `fish`, `beef`, or `egg`), defaulting to `utensils`.
 - `created_by` — authenticated user who originally created the recipe.
 - `updated_by` — authenticated user who last modified the recipe.
 - `created_at`.
@@ -284,6 +285,7 @@ Additional requirements:
       "name": "Recipe name",
       "notes": null,
       "url": null,
+      "icon": "utensils",
       "created_by": "user-id",
       "updated_by": "user-id",
       "created_at": "timestamp",

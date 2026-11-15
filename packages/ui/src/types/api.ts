@@ -5,6 +5,9 @@
  * `snake_case` because that is the wire format.
  */
 
+/** Icons a recipe can display in the recipe drawer. */
+export type RecipeIconName = "utensils" | "fish" | "beef" | "egg";
+
 export interface Ingredient {
   id: string;
   recipe_id: string;
@@ -26,6 +29,7 @@ export interface Recipe {
   name: string;
   notes: string | null;
   url: string | null;
+  icon: RecipeIconName;
   created_by: string;
   updated_by: string;
   created_at: string;
@@ -51,6 +55,7 @@ export interface RecipeWithScheduleInput {
     name: string;
     notes: string | null;
     url: string | null;
+    icon?: RecipeIconName;
   };
   ingredients: Array<{ name: string; quantity: string | null }>;
   schedule: {
@@ -64,5 +69,6 @@ export interface RecipeUpdateInput {
   name?: string;
   notes?: string | null;
   url?: string | null;
+  icon?: RecipeIconName;
   ingredients?: Array<{ name: string; quantity: string | null }>;
 }

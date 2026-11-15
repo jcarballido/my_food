@@ -8,6 +8,13 @@
       "when": 1794521430164,
       "tag": "0000_icy_frank_castle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794696067532,
+      "tag": "0001_glamorous_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

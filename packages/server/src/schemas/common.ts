@@ -55,3 +55,6 @@ export const quantitySchema = z.preprocess(
 );
 
 export const recipeNameSchema = z.string().trim().min(1, "name is required").max(255);
+
+/** Recipe drawer icon. Defaults to `utensils` when omitted on creation. */
+export const recipeIconSchema = z.enum(["utensils", "fish", "beef", "egg"]);

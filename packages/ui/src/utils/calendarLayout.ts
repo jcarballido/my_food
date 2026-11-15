@@ -9,6 +9,7 @@
  */
 
 import { addDays, buildMonthGrid, chunkIntoWeeks, daysInclusive } from "./date.js";
+import { SCHEDULE_COLOR_COUNT } from "./scheduleColors.js";
 import type { CalendarRecipe, Schedule } from "../types/api.js";
 
 export interface CalendarSegment {
@@ -29,6 +30,8 @@ export interface CalendarSegment {
   endColumn: number;
   /** Lane within the week row; higher lanes render lower. */
   lane: number;
+  /** Palette index assigned automatically to the schedule. */
+  colorIndex: number;
   /** True when the schedule continues into the previous week row. */
   continuesBefore: boolean;
   /** True when the schedule continues into the next week row. */
@@ -68,6 +71,51 @@ export function collectSchedules(recipes: CalendarRecipe[]): ScheduleEntry[] {
 }
 
 /**
+ * Assigns a palette index to every visible meal.
+ *
+ * Colours start from a hash of the schedule id so they are deterministic, and
+ * a meal keeps one colour across all of its week-row segments. When two
+ * visible meals hash to the same palette entry, the later one is moved to the
+ * next free entry, which keeps every meal on the calendar distinct.
+ */
+function assignScheduleColors(entries: ScheduleEntry[]): Map<string, number> {
+  const ordered = [...entries].sort(
+    (a, b) =>
+      a.schedule.start_date.localeCompare(b.schedule.start_date) ||
+      a.schedule.id.localeCompare(b.schedule.id),
+  );
+
+  const colors = new Map<string, number>();
+  const used = new Set<number>();
+
+  for (const entry of ordered) {
+    let colorIndex = hashScheduleId(entry.schedule.id) % SCHEDULE_COLOR_COUNT;
+
+    for (
+      let offset = 0;
+      offset < SCHEDULE_COLOR_COUNT && used.has(colorIndex);
+      offset += 1
+    ) {
+      colorIndex = (colorIndex + 1) % SCHEDULE_COLOR_COUNT;
+    }
+
+    used.add(colorIndex);
+    colors.set(entry.schedule.id, colorIndex);
+  }
+
+  return colors;
+}
+
+/** Stable, non-negative hash used as the starting point for a meal colour. */
+function hashScheduleId(scheduleId: string): number {
+  let hash = 0;
+  for (let index = 0; index < scheduleId.length; index += 1) {
+    hash = (hash * 31 + scheduleId.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+/**
  * Computes the bar layout for a month.
  *
  * Schedules are clipped to the visible grid for *positioning* purposes only —
@@ -85,6 +133,14 @@ export function buildCalendarLayout(
   const gridStart = cells[0];
   const gridEnd = cells[cells.length - 1];
 
+  // Schedules outside the visible grid cannot be seen, so they must not
+  // consume a colour that belongs to a meal the user can actually see.
+  const entries = collectSchedules(recipes).filter(
+    ({ schedule }) =>
+      schedule.end_date >= gridStart && schedule.start_date <= gridEnd,
+  );
+  const colorsBySchedule = assignScheduleColors(entries);
+
   interface PendingSegment {
     entry: ScheduleEntry;
     weekIndex: number;
@@ -98,11 +154,8 @@ export function buildCalendarLayout(
 
   const pending: PendingSegment[] = [];
 
-  for (const entry of collectSchedules(recipes)) {
+  for (const entry of entries) {
     const { start_date: startDate, end_date: endDate } = entry.schedule;
-
-    // Skip schedules that do not touch the visible grid at all.
-    if (endDate < gridStart || startDate > gridEnd) continue;
 
     // Clip to the visible grid for positioning.
     const visibleStart = startDate < gridStart ? gridStart : startDate;
@@ -183,6 +236,7 @@ export function buildCalendarLayout(
         startColumn: segment.startColumn,
         endColumn: segment.endColumn,
         lane,
+        colorIndex: colorsBySchedule.get(segment.entry.schedule.id) ?? 0,
         continuesBefore: segment.continuesBefore,
         continuesAfter: segment.continuesAfter,
         isStart: segment.isStart,

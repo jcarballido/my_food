@@ -238,6 +238,41 @@ async function main(): Promise<void> {
     assert.equal(firstOfSecond[1].isEnd, true);
   });
 
+  await test("every visible meal gets its own colour", () => {
+    const layout = buildCalendarLayout(
+      [
+        calendarRecipe(
+          "a",
+          [
+            schedule("s1", "2026-11-10", "2026-11-12"),
+            schedule("s2", "2026-11-20", "2026-11-22"),
+          ],
+        ),
+        calendarRecipe("b", [schedule("s3", "2026-11-11", "2026-11-13")]),
+        calendarRecipe("c", [schedule("s4", "2026-11-25", "2026-11-26")]),
+      ],
+      2026,
+      11,
+    );
+
+    const colorBySchedule = new Map<string, number>();
+    for (const segment of layout.segmentsByWeek.flat()) {
+      const existing = colorBySchedule.get(segment.scheduleId);
+      if (existing !== undefined) {
+        assert.equal(segment.colorIndex, existing, "a meal changed colour between weeks");
+      } else {
+        colorBySchedule.set(segment.scheduleId, segment.colorIndex);
+      }
+    }
+
+    assert.equal(colorBySchedule.size, 4);
+    assert.equal(
+      new Set(colorBySchedule.values()).size,
+      4,
+      "visible meals must not share a colour",
+    );
+  });
+
   await test("each recipe produces exactly one segment per week row", () => {
     const layout = buildCalendarLayout(
       [

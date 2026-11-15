@@ -63,7 +63,10 @@ export function CalendarPanel() {
   );
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col bg-white" aria-label="Calendar">
+    <section
+      className="panel flex min-h-0 flex-1 flex-col overflow-hidden"
+      aria-label="Calendar"
+    >
       <CalendarHeader
         month={month}
         year={year}
@@ -76,7 +79,10 @@ export function CalendarPanel() {
       <WeekdayRow />
 
       {error ? (
-        <div role="alert" className="m-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <div
+          role="alert"
+          className="m-4 rounded-2xl border border-clay/30 bg-clay-soft px-4 py-3 text-sm text-[#7f3f30]"
+        >
           {error}
         </div>
       ) : null}

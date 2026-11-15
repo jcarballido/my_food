@@ -78,6 +78,7 @@ Table: `recipes`
 | name | VARCHAR | Required, unique |
 | notes | TEXT | Optional |
 | url | TEXT | Optional |
+| icon | VARCHAR | Required, defaults to `utensils`; one of `utensils`, `fish`, `beef`, `egg` |
 | created_by | UUID | Required |
 | updated_by | UUID | Required |
 | created_at | TIMESTAMP | Automatically generated |
@@ -87,6 +88,7 @@ Requirements:
 - Every recipe must have a unique name.
 - Notes are optional free-form text.
 - URL is optional.
+- Icon selects the Lucide glyph shown for the recipe (`utensils`, `fish`, `beef`, or `egg`); new recipes default to `utensils`.
 - `created_by` identifies the user who originally created the recipe.
 - `updated_by` identifies the user who last modified the recipe.
 - User IDs must correspond to IDs supplied by the authentication provider.

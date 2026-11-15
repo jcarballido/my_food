@@ -17,7 +17,7 @@ export interface CalendarState {
   /** Applies a recipe change to the calendar copy without a round trip. */
   patchRecipe: (
     recipeId: string,
-    changes: Partial<Pick<CalendarRecipe, "name" | "notes" | "url" | "ingredients">>,
+    changes: Partial<Pick<CalendarRecipe, "name" | "notes" | "url" | "icon" | "ingredients">>,
   ) => void;
   removeRecipe: (recipeId: string) => void;
   clearError: () => void;

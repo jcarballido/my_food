@@ -29,7 +29,9 @@ export function ScheduleModal() {
   const mode = useUiStore((state) => state.scheduleModalMode);
   const preselectedDate = useUiStore((state) => state.scheduleModalDate);
   const preselectedRecipeId = useUiStore((state) => state.scheduleModalRecipeId);
+  const editingSchedule = useUiStore((state) => state.scheduleModalSchedule);
   const closeModal = useUiStore((state) => state.closeScheduleModal);
+  const isEditing = editingSchedule !== null;
   const openConfirmDialog = useUiStore((state) => state.openConfirmDialog);
   const closeConfirmDialog = useUiStore((state) => state.closeConfirmDialog);
 
@@ -49,34 +51,39 @@ export function ScheduleModal() {
   const [dateMode, setDateMode] = useState<DateMode>("duration");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [initialDate, setInitialDate] = useState("");
+  const [initialStart, setInitialStart] = useState("");
+  const [initialEnd, setInitialEnd] = useState("");
 
   // Reset the form whenever the modal is opened.
   useEffect(() => {
     if (!open) return;
 
     const today = toIsoDate(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate());
-    const initialDate = preselectedDate ?? today;
-    setInitialDate(initialDate);
+    const nextStart = editingSchedule?.start_date ?? preselectedDate ?? today;
+    const nextEnd = editingSchedule?.end_date ?? nextStart;
+    setInitialStart(nextStart);
+    setInitialEnd(nextEnd);
 
     setWorkflow(mode);
-    setRecipeId(preselectedRecipeId ?? "");
+    setRecipeId(editingSchedule?.recipe_id ?? preselectedRecipeId ?? "");
     setName("");
     setNotes("");
     setUrl("");
     setIngredients([]);
-    setStartDate(initialDate);
-    setDuration("1");
-    setDateMode("duration");
+    setStartDate(nextStart);
+    setEndDate(nextEnd);
+    setDuration(
+      editingSchedule ? String(daysInclusive(nextStart, nextEnd)) : "1",
+    );
+    // Editing always starts from the exact saved range.
+    setDateMode(editingSchedule ? "range" : "duration");
     setError(null);
     setSubmitting(false);
-    // `endDate` is derived from the active date mode.
-    setEndDate(initialDate);
-  }, [open, mode, preselectedDate, preselectedRecipeId]);
+  }, [open, mode, preselectedDate, preselectedRecipeId, editingSchedule]);
 
   const dirty = open && Boolean(name || notes || url || ingredients.length ||
-    recipeId !== (preselectedRecipeId ?? "") || startDate !== initialDate ||
-    endDate !== initialDate);
+    recipeId !== (editingSchedule?.recipe_id ?? preselectedRecipeId ?? "") ||
+    startDate !== initialStart || endDate !== initialEnd);
   useBeforeUnload(dirty || submitting);
   const requestClose = () => {
     if (submitting) return;
@@ -85,8 +92,10 @@ export function ScheduleModal() {
       return;
     }
     openConfirmDialog({
-      title: "Discard unsaved schedule?",
-      message: "Your recipe and schedule have not been saved.",
+      title: isEditing ? "Discard schedule changes?" : "Discard unsaved schedule?",
+      message: isEditing
+        ? "Your changes to this schedule have not been saved."
+        : "Your recipe and schedule have not been saved.",
       confirmLabel: "Discard changes",
       onConfirm: () => {
         closeConfirmDialog();
@@ -179,7 +188,12 @@ export function ScheduleModal() {
     setError(null);
 
     try {
-      if (workflow === "existing") {
+      if (editingSchedule) {
+        await recipeService.updateSchedule(editingSchedule.recipe_id, editingSchedule.id, {
+          start_date: startDate,
+          end_date: endDate,
+        });
+      } else if (workflow === "existing") {
         await recipeService.createSchedule(recipeId, {
           start_date: startDate,
           end_date: endDate,
@@ -222,7 +236,13 @@ export function ScheduleModal() {
   return (
     <Modal
       open={open}
-      title={workflow === "existing" ? "Schedule a recipe" : "New recipe & schedule"}
+      title={
+        isEditing
+          ? "Edit schedule"
+          : workflow === "existing"
+            ? "Schedule a recipe"
+            : "New recipe & schedule"
+      }
       onClose={requestClose}
       busy={submitting}
       footer={
@@ -236,7 +256,7 @@ export function ScheduleModal() {
             onClick={() => void handleSubmit()}
             disabled={submitting || validationError !== null}
           >
-            {submitting ? "Saving…" : "Save schedule"}
+            {submitting ? "Saving…" : isEditing ? "Save changes" : "Save schedule"}
           </button>
         </>
       }
@@ -244,48 +264,61 @@ export function ScheduleModal() {
       <div className="space-y-5">
         {error ? <ErrorBanner message={error} /> : null}
 
-        {/* Workflow switch */}
-        <div
-          className="grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1"
-          role="tablist"
-          aria-label="Scheduling workflow"
-        >
-          {(["existing", "new"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="tab"
-              aria-selected={workflow === option}
-              onClick={() => setWorkflow(option)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                workflow === option
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              {option === "existing" ? "Existing recipe" : "New recipe"}
-            </button>
-          ))}
-        </div>
+        {/* Workflow switch (editing only changes the dates of a known recipe) */}
+        {isEditing ? null : (
+          <div
+            className="grid grid-cols-2 gap-1.5 rounded-full border border-line bg-cream-deep p-1"
+            role="tablist"
+            aria-label="Scheduling workflow"
+          >
+            {(["existing", "new"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="tab"
+                aria-selected={workflow === option}
+                onClick={() => setWorkflow(option)}
+                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  workflow === option
+                    ? "bg-paper text-ink shadow-sm"
+                    : "text-muted hover:text-ink"
+                }`}
+              >
+                {option === "existing" ? "Existing recipe" : "New recipe"}
+              </button>
+            ))}
+          </div>
+        )}
 
         {workflow === "existing" ? (
           <div>
-            <label className="label" htmlFor="schedule-recipe">
-              Recipe
-            </label>
-            <select
-              id="schedule-recipe"
-              className="input"
-              value={recipeId}
-              onChange={(event) => setRecipeId(event.target.value)}
-            >
-              <option value="">Select a recipe…</option>
-              {recipes.map((recipe) => (
-                <option key={recipe.id} value={recipe.id}>
-                  {recipe.name}
-                </option>
-              ))}
-            </select>
+            {isEditing ? (
+              <>
+                <span className="label">Recipe</span>
+                <p className="rounded-xl border border-line bg-cream-deep/60 px-3.5 py-2.5 text-sm font-medium text-ink">
+                  {recipes.find((recipe) => recipe.id === recipeId)?.name ?? "Recipe"}
+                </p>
+              </>
+            ) : (
+              <>
+                <label className="label" htmlFor="schedule-recipe">
+                  Recipe
+                </label>
+                <select
+                  id="schedule-recipe"
+                  className="input"
+                  value={recipeId}
+                  onChange={(event) => setRecipeId(event.target.value)}
+                >
+                  <option value="">Select a recipe…</option>
+                  {recipes.map((recipe) => (
+                    <option key={recipe.id} value={recipe.id}>
+                      {recipe.name}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -334,7 +367,7 @@ export function ScheduleModal() {
                 <span className="label mb-0">Ingredients</span>
                 <button
                   type="button"
-                  className="btn-ghost px-2 py-1 text-xs"
+                  className="btn-secondary px-3 py-1 text-xs"
                   onClick={() => setIngredients([...ingredients, { name: "", quantity: "" }])}
                 >
                   Add ingredient
@@ -342,7 +375,7 @@ export function ScheduleModal() {
               </div>
 
               {ingredients.length === 0 ? (
-                <p className="text-sm text-slate-500">No ingredients yet.</p>
+                <p className="text-sm text-muted">No ingredients yet.</p>
               ) : (
                 <ul className="space-y-2">
                   {ingredients.map((ingredient, index) => (
@@ -379,7 +412,7 @@ export function ScheduleModal() {
                       />
                       <button
                         type="button"
-                        className="btn-ghost px-2 text-slate-500 hover:text-red-600"
+                        className="btn-ghost px-2 text-muted hover:bg-clay-soft hover:text-clay"
                         onClick={() =>
                           setIngredients(ingredients.filter((_, current) => current !== index))
                         }
@@ -405,11 +438,13 @@ export function ScheduleModal() {
         )}
 
         {/* Date selection */}
-        <div className="space-y-3 border-t border-slate-200 pt-4">
+        <div className="space-y-3 border-t border-line/80 pt-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-700">Schedule</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
+              Schedule
+            </span>
             <div
-              className="flex rounded-md border border-slate-300 p-0.5"
+              className="flex rounded-full border border-line-strong bg-cream-deep/70 p-0.5"
               role="group"
               aria-label="Date input method"
             >
@@ -419,10 +454,10 @@ export function ScheduleModal() {
                   type="button"
                   onClick={() => handleDateModeChange(option)}
                   aria-pressed={dateMode === option}
-                  className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                     dateMode === option
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-sage-dark text-white shadow-sm"
+                      : "text-muted hover:text-ink"
                   }`}
                 >
                   {option === "duration" ? "By duration" : "By end date"}
@@ -478,7 +513,7 @@ export function ScheduleModal() {
           </div>
 
           {calculatedDuration > 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted">
               {calculatedDuration} day{calculatedDuration === 1 ? "" : "s"} · {startDate} →{" "}
               {endDate}
             </p>

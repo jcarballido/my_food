@@ -51,6 +51,7 @@ Field names below are **snake_case** and are the exact JSON keys returned by the
   "name": "Recipe name",
   "notes": null,
   "url": null,
+  "icon": "utensils",
   "created_by": "uuid",
   "updated_by": "uuid",
   "created_at": "2026-11-13T09:41:00.000Z",
@@ -59,6 +60,7 @@ Field names below are **snake_case** and are the exact JSON keys returned by the
 }
 ```
 
+- `icon` is one of `utensils`, `fish`, `beef`, or `egg`; it defaults to `utensils` on creation.
 - `ingredients` is always present on recipe endpoints that return a recipe.
 - `schedules` is **not** present on regular recipe endpoints (see `SERVER.md` §5).
 - `created_by` never changes after creation; `updated_by` changes on every modification.
@@ -136,18 +138,19 @@ establishes the session itself.
 **`POST /api/recipes` request**
 
 ```json
-{ "name": "Pancakes", "notes": "Sunday brunch", "url": "https://example.com/pancakes" }
+{ "name": "Pancakes", "notes": "Sunday brunch", "url": "https://example.com/pancakes", "icon": "utensils" }
 ```
 
 - `name` required (unique, 1–255 chars).
 - `notes` optional string or `null`.
 - `url` optional HTTP(S) URL or `null`; empty string is normalised to `null`.
+- `icon` optional, one of `utensils`, `fish`, `beef`, `egg`; defaults to `utensils`.
 
 **`POST /api/recipes/with-schedule` request**
 
 ```json
 {
-  "recipe": { "name": "Pancakes", "notes": null, "url": null },
+  "recipe": { "name": "Pancakes", "notes": null, "url": null, "icon": "utensils" },
   "ingredients": [{ "name": "Flour", "quantity": "1/2 cup" }],
   "schedule": { "start_date": "2026-11-10", "end_date": "2026-11-13" }
 }
@@ -165,11 +168,13 @@ establishes the session itself.
   "name": "Fluffy Pancakes",
   "notes": "Updated notes",
   "url": null,
+  "icon": "egg",
   "ingredients": [{ "name": "Flour", "quantity": "1 cup" }]
 }
 ```
 
 - At least one field must be supplied.
+- `icon`, when supplied, must be one of `utensils`, `fish`, `beef`, `egg`.
 - `ingredients`, when present, **replaces** the recipe's full ingredient set
   atomically together with the recipe fields (add / edit / remove in one save).
 - When `ingredients` is omitted, existing ingredients are left untouched.

@@ -11,3 +11,4 @@ coverage/
 *.tsbuildinfo
 !.env.example
 seed.ts
+theme.tsx

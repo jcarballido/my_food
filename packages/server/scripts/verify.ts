@@ -220,6 +220,7 @@ async function main(): Promise<void> {
     assert.equal(recipe.name, `Pancakes ${unique}`);
     assert.equal(recipe.created_by, userId);
     assert.equal(recipe.updated_by, userId);
+    assert.equal(recipe.icon, "utensils");
     assert.deepEqual(recipe.ingredients, []);
     assert.ok(typeof recipe.created_at === "string");
     assert.ok(!("createdBy" in recipe));
@@ -262,6 +263,16 @@ async function main(): Promise<void> {
       url: "/api/recipes",
       headers: auth,
       payload: { name: "   " },
+    });
+    assert.equal(response.statusCode, 400);
+  });
+
+  await test("POST /api/recipes rejects an unsupported icon", async ({ app: instance }) => {
+    const response = await instance.inject({
+      method: "POST",
+      url: "/api/recipes",
+      headers: auth,
+      payload: { name: `Bad icon ${unique}`, icon: "pizza" },
     });
     assert.equal(response.statusCode, 400);
   });
@@ -533,6 +544,7 @@ async function main(): Promise<void> {
       headers: auth,
       payload: {
         name: `Patched renamed ${unique}`,
+        icon: "fish",
         ingredients: [
           { name: "New A", quantity: "2" },
           { name: "New B", quantity: null },
@@ -543,6 +555,7 @@ async function main(): Promise<void> {
     assert.equal(patched.statusCode, 200);
     const recipe = patched.json().recipe;
     assert.equal(recipe.name, `Patched renamed ${unique}`);
+    assert.equal(recipe.icon, "fish");
     assert.equal(recipe.ingredients.length, 2);
     assert.ok(recipe.ingredients.every((i: any) => i.name !== "Old"));
   });

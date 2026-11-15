@@ -20,6 +20,7 @@ import {
   type CalendarWindow,
   type Database,
   type NewRecipeIngredientInput,
+  type RecipeIcon,
   type RecipeIngredient,
   type RecipeSchedule,
   type RecipeWithIngredients,
@@ -60,6 +61,7 @@ export interface RecipeInput {
   name: string;
   notes?: string | null;
   url?: string | null;
+  icon?: RecipeIcon;
 }
 
 export interface IngredientInput {
@@ -90,6 +92,7 @@ export class RecipeService {
       name: input.name,
       notes: input.notes ?? null,
       url: input.url ?? null,
+      icon: input.icon,
       createdBy: userId,
       updatedBy: userId,
     });
@@ -111,6 +114,7 @@ export class RecipeService {
         name: input.name,
         notes: input.notes ?? null,
         url: input.url ?? null,
+        icon: input.icon,
         createdBy: userId,
         updatedBy: userId,
       },

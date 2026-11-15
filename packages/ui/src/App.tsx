@@ -66,7 +66,14 @@ export function App() {
     } else if (status === "unauthenticated") {
       useRecipeStore.getState().reset();
       useCalendarStore.getState().reset();
-      useUiStore.setState({ confirmDialog: null, scheduleModalOpen: false, recipeDirty: false });
+      useUiStore.setState({
+        confirmDialog: null,
+        scheduleModalOpen: false,
+        scheduleModalSchedule: null,
+        scheduleModalRecipeId: null,
+        scheduleModalDate: null,
+        recipeDirty: false,
+      });
     }
   }, [status, loadRecipes]);
 
@@ -96,19 +103,23 @@ export function App() {
   };
 
   return (
-    <div className="flex h-full min-h-screen flex-col bg-slate-50">
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-        <h1 className="text-base font-semibold tracking-tight text-slate-900">My Food</h1>
+    <div className="flex h-full min-h-screen flex-col bg-transparent text-ink">
+      <header className="flex items-center justify-between gap-4 border-b border-line/80 bg-cream/75 px-4 py-3.5 backdrop-blur-sm sm:px-6">
+        <h1 className="text-3xl font-medium tracking-tight text-ink">
+          Dnnr<span className="text-clay">.</span>
+        </h1>
 
         <div className="flex items-center gap-2">
-          <span className="hidden text-sm text-slate-500 sm:inline">{session.user.email}</span>
+          <span className="hidden rounded-full border border-line bg-paper/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted sm:inline">
+            {session.user.email}
+          </span>
           <button type="button" onClick={() => navigate(() => void signOut().catch(() => undefined))} className="btn-secondary">
             Sign out
           </button>
           <button
             type="button"
             onClick={toggleDrawer}
-            className="btn-secondary"
+            className="btn-primary"
             aria-expanded={drawerOpen}
             aria-controls="recipe-drawer"
           >
@@ -117,10 +128,10 @@ export function App() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-3 lg:flex-row lg:gap-5 lg:p-5">
         <CalendarPanel />
 
-        <div id="recipe-drawer" className={drawerOpen ? "flex" : "hidden"}>
+        <div id="recipe-drawer" className={drawerOpen ? "flex min-h-0" : "hidden"}>
           <RecipeDrawer open={drawerOpen} />
         </div>
       </div>

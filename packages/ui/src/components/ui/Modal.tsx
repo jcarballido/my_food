@@ -29,7 +29,7 @@ export function Modal({ open, title, onClose, children, footer, busy = false }: 
     <dialog
       ref={ref}
       aria-labelledby={titleId}
-      className="m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-lg rounded-xl bg-white p-0 shadow-xl backdrop:bg-slate-900/40"
+      className="m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-lg rounded-[28px] border border-line bg-paper p-0 shadow-[0_40px_90px_-40px_rgba(47,58,50,0.55)] backdrop:bg-ink/35"
       onCancel={(event) => {
         event.preventDefault();
         if (!busy) onClose();
@@ -41,15 +41,15 @@ export function Modal({ open, title, onClose, children, footer, busy = false }: 
       <div
         className="flex max-h-[90vh] flex-col overflow-hidden"
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <h2 id={titleId} className="text-base font-semibold text-slate-900">
+        <div className="flex items-center justify-between gap-4 border-b border-line/80 px-5 py-4">
+          <h2 id={titleId} className="text-xl font-medium text-ink">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="btn-ghost -mr-2 px-2 py-1"
+            className="btn-ghost -mr-2 h-9 w-9 px-0"
             aria-label="Close dialog"
           >
             <svg
@@ -65,10 +65,10 @@ export function Modal({ open, title, onClose, children, footer, busy = false }: 
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
 
         {footer ? (
-          <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line/80 bg-cream/45 px-5 py-4">
             {footer}
           </div>
         ) : null}

@@ -4,6 +4,7 @@ import {
   optionalTextSchema,
   optionalUrlSchema,
   quantitySchema,
+  recipeIconSchema,
   recipeNameSchema,
   uuidSchema,
 } from "./common.js";
@@ -17,6 +18,7 @@ export const recipeBodySchema = z.object({
   name: recipeNameSchema,
   notes: optionalTextSchema,
   url: optionalUrlSchema,
+  icon: recipeIconSchema.optional(),
 });
 
 export const recipeUpdateSchema = z
@@ -24,6 +26,7 @@ export const recipeUpdateSchema = z
     name: recipeNameSchema.optional(),
     notes: optionalTextSchema,
     url: optionalUrlSchema,
+    icon: recipeIconSchema.optional(),
     ingredients: z.array(ingredientInputSchema).optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {

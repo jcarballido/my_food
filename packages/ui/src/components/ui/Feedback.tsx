@@ -6,9 +6,9 @@ interface SpinnerProps {
 /** Indeterminate loading indicator with an accessible label. */
 export function Spinner({ label = "Loading", className = "" }: SpinnerProps) {
   return (
-    <div className={`flex items-center gap-2 text-sm text-slate-500 ${className}`} role="status">
+    <div className={`flex items-center gap-2 text-sm text-muted ${className}`} role="status">
       <svg
-        className="h-4 w-4 animate-spin text-slate-400"
+        className="h-4 w-4 animate-spin text-sage-ink/70"
         viewBox="0 0 24 24"
         fill="none"
         aria-hidden="true"
@@ -44,14 +44,14 @@ export function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
   return (
     <div
       role="alert"
-      className="flex items-start justify-between gap-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+      className="flex items-start justify-between gap-3 rounded-2xl border border-clay/30 bg-clay-soft px-3.5 py-2.5 text-sm text-[#7f3f30]"
     >
       <span>{message}</span>
       {onDismiss ? (
         <button
           type="button"
           onClick={onDismiss}
-          className="shrink-0 text-red-600 hover:text-red-800"
+          className="shrink-0 text-clay hover:text-ink"
           aria-label="Dismiss error"
         >
           <svg

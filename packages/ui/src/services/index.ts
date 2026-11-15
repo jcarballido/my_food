@@ -74,6 +74,19 @@ export const recipeService = {
     return schedule;
   },
 
+  /** Updates the dates of an existing schedule. */
+  async updateSchedule(
+    recipeId: string,
+    scheduleId: string,
+    input: { start_date: string; end_date: string },
+  ): Promise<Schedule> {
+    const { schedule } = await api.patch<{ schedule: Schedule }>(
+      `/api/recipes/${recipeId}/schedules/${scheduleId}`,
+      input,
+    );
+    return schedule;
+  },
+
   async listSchedules(recipeId: string): Promise<Schedule[]> {
     const { schedules } = await api.get<{ schedules: Schedule[] }>(
       `/api/recipes/${recipeId}/schedules`,

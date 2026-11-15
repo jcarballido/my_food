@@ -1,9 +1,96 @@
 @import "tailwindcss";
 
+/*
+ * Visual theme inspired by `theme.tsx`.
+ *
+ * Warm paper surfaces, deep green ink, and muted sage / peach / yellow /
+ * lavender accents, plus companion pastels used to give every scheduled meal
+ * its own colour. The neutral `slate` scale is remapped to warm stone so
+ * existing utility classes stay readable while matching the reference.
+ */
 @theme {
-  --color-surface: oklch(99% 0.002 250);
-  --color-surface-muted: oklch(96.5% 0.005 250);
-  --color-border-subtle: oklch(90% 0.008 250);
+  --font-sans: "Avenir Next", "Segoe UI", system-ui, -apple-system, Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, serif;
+
+  --color-cream: #fbf7ee;
+  --color-cream-deep: #f4eee1;
+  --color-paper: #fffdf8;
+
+  --color-ink: #2f3a32;
+  --color-ink-soft: #566158;
+  --color-muted: #858b81;
+  --color-line: #e6e0d3;
+  --color-line-strong: #d6cfbf;
+
+  --color-sage: #dce7d5;
+  --color-sage-soft: #edf3e9;
+  --color-sage-ink: #4b6148;
+  --color-sage-deep: #d1e0c9;
+  --color-sage-dark: #435a41;
+
+  --color-peach: #f5dccb;
+  --color-peach-soft: #fbeee5;
+  --color-peach-ink: #95593b;
+  --color-peach-deep: #f0d2bd;
+
+  --color-yellow: #f2e6b4;
+  --color-yellow-soft: #faf3d7;
+  --color-yellow-ink: #80641f;
+  --color-yellow-deep: #ebdda3;
+
+  --color-lavender: #e5dcef;
+  --color-lavender-soft: #f1ebf7;
+  --color-lavender-ink: #695982;
+  --color-lavender-deep: #dcd0e9;
+
+  --color-sky: #d7e6ef;
+  --color-sky-ink: #3f6579;
+  --color-sky-deep: #c9dce9;
+
+  --color-rose: #f3d9dc;
+  --color-rose-ink: #8f4a54;
+  --color-rose-deep: #eccbd0;
+
+  --color-mint: #d5e9e2;
+  --color-mint-ink: #3d6b5d;
+  --color-mint-deep: #c7e1d7;
+
+  --color-sand: #ece0c9;
+  --color-sand-ink: #7a6338;
+  --color-sand-deep: #e4d4b8;
+
+  --color-periwinkle: #dde1f2;
+  --color-periwinkle-ink: #4f5685;
+  --color-periwinkle-deep: #d0d6ee;
+
+  --color-apricot: #f6e0c7;
+  --color-apricot-ink: #91602f;
+  --color-apricot-deep: #f2d4b3;
+
+  --color-teal: #d3e7e6;
+  --color-teal-ink: #3c6664;
+  --color-teal-deep: #c3dedd;
+
+  --color-mauve: #e9d9e4;
+  --color-mauve-ink: #7a4e6b;
+  --color-mauve-deep: #e0cbd9;
+
+  --color-clay: #ad5b47;
+  --color-clay-soft: #f8e7e1;
+
+  /* Warm stone neutrals for legacy `slate-*` utilities. */
+  --color-slate-50: #f7f2e8;
+  --color-slate-100: #f0e9db;
+  --color-slate-200: #e6e0d3;
+  --color-slate-300: #d6cfbf;
+  --color-slate-400: #a4a89e;
+  --color-slate-500: #858b81;
+  --color-slate-600: #647066;
+  --color-slate-700: #4c574e;
+  --color-slate-800: #3a453c;
+  --color-slate-900: #2f3a32;
 }
 
 @layer base {
@@ -15,17 +102,37 @@
 
   body {
     margin: 0;
-    background-color: var(--color-surface);
-    color: oklch(25% 0.01 250);
-    font-family:
-      ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-      Arial, sans-serif;
+    background-color: var(--color-cream);
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(220, 231, 213, 0.55), transparent 32rem),
+      radial-gradient(circle at 100% 100%, rgba(245, 220, 203, 0.35), transparent 30rem);
+    background-attachment: fixed;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
 
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: var(--color-sage);
+    color: var(--color-ink);
+  }
+
   :focus-visible {
-    outline: 2px solid oklch(55% 0.15 250);
+    outline: 2px solid var(--color-sage-dark);
     outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
   }
 }
 
@@ -36,37 +143,50 @@
  * styles are declared with `@utility` instead of `@layer components`.
  */
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-45;
 }
 
 @utility btn-primary {
-  @apply btn bg-slate-900 text-white hover:bg-slate-700;
+  @apply btn bg-sage-dark text-white shadow-sm hover:bg-ink active:translate-y-px;
 }
 
 @utility btn-secondary {
-  @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  @apply btn border border-line-strong bg-paper text-ink shadow-sm hover:border-sage-ink/40 hover:bg-cream-deep;
 }
 
 @utility btn-ghost {
-  @apply btn text-slate-600 hover:bg-slate-100;
+  @apply btn text-ink-soft hover:bg-sage-soft hover:text-ink;
 }
 
 @utility btn-danger {
-  @apply btn bg-red-600 text-white hover:bg-red-500;
+  @apply btn bg-clay text-white shadow-sm hover:bg-[#944837] active:translate-y-px;
 }
 
 @utility input {
-  @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 focus:outline-none;
+  @apply w-full rounded-xl border border-line-strong bg-paper px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:border-sage-ink focus:ring-2 focus:ring-sage/70 focus:outline-none;
 }
 
 @utility label {
-  @apply mb-1 block text-sm font-medium text-slate-700;
+  @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft;
 }
 
 @utility field-error {
-  @apply mt-1 text-sm text-red-600;
+  @apply mt-1 text-sm text-clay;
 }
 
 @utility card {
-  @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+  @apply rounded-[28px] border border-line bg-paper shadow-[0_28px_60px_-45px_rgba(47,58,50,0.55)];
+}
+
+@utility eyebrow {
+  @apply text-[10px] font-semibold uppercase tracking-[0.24em] text-sage-ink;
+}
+
+@utility panel {
+  @apply rounded-[28px] border border-line bg-paper shadow-[0_28px_60px_-45px_rgba(47,58,50,0.55)];
+}
+
+/* Tile that holds a recipe's icon in the recipe drawer. */
+@utility recipe-icon {
+  @apply flex shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-sage-soft text-sage-ink;
 }

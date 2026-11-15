@@ -1,0 +1,2 @@
+ALTER TABLE "recipes" ADD COLUMN "icon" varchar(32) DEFAULT 'utensils' NOT NULL;--> statement-breakpoint
+ALTER TABLE "recipes" ADD CONSTRAINT "recipes_icon_valid" CHECK ("recipes"."icon" in ('utensils', 'fish', 'beef', 'egg'));

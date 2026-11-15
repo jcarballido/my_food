@@ -3,7 +3,9 @@ import { useRecipeStore } from "../../stores/recipeStore.js";
 import { useCalendarStore } from "../../stores/calendarStore.js";
 import { useUiStore } from "../../stores/uiStore.js";
 import { Spinner, ErrorBanner } from "../ui/Feedback.js";
-import type { Recipe } from "../../types/api.js";
+import { RecipeIcon, RECIPE_ICON_OPTIONS } from "./RecipeIcon.js";
+import type { Recipe, RecipeIconName, Schedule } from "../../types/api.js";
+import { daysInclusive, formatDate } from "../../utils/date.js";
 import { useBeforeUnload } from "../../hooks/useBeforeUnload.js";
 
 interface RecipeDrawerProps {
@@ -36,7 +38,7 @@ export function RecipeDrawer({ open }: RecipeDrawerProps) {
   return (
     <aside
       hidden={!open}
-      className="flex w-full shrink-0 flex-col border-l border-slate-200 bg-slate-50 lg:w-96"
+      className="flex w-full shrink-0 flex-col overflow-hidden rounded-[28px] border border-line bg-cream-deep/70 shadow-[0_28px_60px_-45px_rgba(47,58,50,0.55)] lg:w-96"
       aria-label="Recipes"
     >
       {showDetail && selected ? (
@@ -50,11 +52,14 @@ export function RecipeDrawer({ open }: RecipeDrawerProps) {
         />
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Recipes
-            </h2>
-            <span className="text-xs text-slate-400">{recipes.length} saved</span>
+          <div className="flex items-center justify-between border-b border-line/80 px-4 py-4">
+            <div>
+              <div className="eyebrow">Your collection</div>
+              <h2 className="mt-0.5 text-xl font-medium text-ink">Recipes</h2>
+            </div>
+            <span className="rounded-full bg-sage-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-sage-ink">
+              {recipes.length} saved
+            </span>
           </div>
 
           {error ? (
@@ -71,27 +76,38 @@ export function RecipeDrawer({ open }: RecipeDrawerProps) {
 
           {status === "ready" && recipes.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm leading-relaxed text-muted">
                 No recipes yet. Click any calendar date to create one.
               </p>
             </div>
           ) : null}
 
-          <ul className="min-h-0 flex-1 divide-y divide-slate-200 overflow-y-auto">
+          <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
             {recipes.map((recipe) => (
               <li key={recipe.id}>
                 <button
                   type="button"
                   onClick={() => select(recipe.id)}
-                  className="w-full px-4 py-3 text-left transition-colors hover:bg-white"
+                  className="group flex w-full items-center gap-3 rounded-2xl border border-transparent px-2.5 py-2.5 text-left transition-colors hover:border-line hover:bg-paper"
                 >
-                  <span className="block truncate text-sm font-medium text-slate-800">
-                    {recipe.name}
+                  <span className="recipe-icon h-11 w-11">
+                    <RecipeIcon name={recipe.icon} className="h-5 w-5" />
                   </span>
-                  <span className="mt-0.5 block truncate text-xs text-slate-500">
-                    {recipe.ingredients.length > 0
-                      ? `${recipe.ingredients.length} ingredient${recipe.ingredients.length === 1 ? "" : "s"}`
-                      : "No ingredients"}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-ink">
+                      {recipe.name}
+                    </span>
+                    <span className="mt-0.5 block truncate text-xs text-muted">
+                      {recipe.ingredients.length > 0
+                        ? `${recipe.ingredients.length} ingredient${recipe.ingredients.length === 1 ? "" : "s"}`
+                        : "No ingredients"}
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="pr-1 text-lg text-muted/60 transition-transform group-hover:translate-x-0.5"
+                  >
+                    ›
                   </span>
                 </button>
               </li>
@@ -117,8 +133,10 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
   const clearError = useRecipeStore((state) => state.clearError);
   const patchCalendarRecipe = useCalendarStore((state) => state.patchRecipe);
   const removeFromCalendar = useCalendarStore((state) => state.removeRecipe);
+  const calendarRecipes = useCalendarStore((state) => state.recipes);
   const openConfirmDialog = useUiStore((state) => state.openConfirmDialog);
   const closeConfirmDialog = useUiStore((state) => state.closeConfirmDialog);
+  const openScheduleModal = useUiStore((state) => state.openScheduleModal);
   const navigate = useUiStore((state) => state.navigate);
   const setRecipeDirty = useUiStore((state) => state.setRecipeDirty);
 
@@ -126,6 +144,7 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
   const [name, setName] = useState(recipe.name);
   const [notes, setNotes] = useState(recipe.notes ?? "");
   const [url, setUrl] = useState(recipe.url ?? "");
+  const [icon, setIcon] = useState<RecipeIconName>(recipe.icon ?? "utensils");
   const [ingredients, setIngredients] = useState(
     recipe.ingredients.map((ingredient) => ({
       name: ingredient.name,
@@ -135,10 +154,16 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
 
   const busy = mutatingRecipeId === recipe.id;
 
+  // The calendar payload carries the schedules that overlap the displayed
+  // month, which is exactly the set the user can currently see and edit.
+  const schedules = [...(calendarRecipes.find((item) => item.id === recipe.id)?.schedules ?? [])]
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+
   const resetForm = () => {
     setName(recipe.name);
     setNotes(recipe.notes ?? "");
     setUrl(recipe.url ?? "");
+    setIcon(recipe.icon ?? "utensils");
     setIngredients(
       recipe.ingredients.map((ingredient) => ({
         name: ingredient.name,
@@ -153,6 +178,7 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
     name !== recipe.name ||
     notes !== (recipe.notes ?? "") ||
     url !== (recipe.url ?? "") ||
+    icon !== (recipe.icon ?? "utensils") ||
     ingredients.length !== recipe.ingredients.length ||
     ingredients.some((ingredient, index) => {
       const stored = recipe.ingredients[index];
@@ -182,6 +208,7 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
       name: trimmedName,
       notes: notes.trim().length > 0 ? notes.trim() : null,
       url: url.trim().length > 0 ? url.trim() : null,
+      icon,
       ingredients: ingredients
         .filter((ingredient) => ingredient.name.trim().length > 0)
         .map((ingredient) => ({
@@ -196,6 +223,7 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
         name: saved.name,
         notes: saved.notes,
         url: saved.url,
+        icon: saved.icon,
         ingredients: saved.ingredients,
       });
       setEditing(false);
@@ -213,8 +241,8 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-        <button type="button" onClick={handleBack} disabled={busy} className="btn-ghost px-2 py-1">
+      <div className="flex items-center justify-between border-b border-line/80 px-3 py-3">
+        <button type="button" onClick={handleBack} disabled={busy} className="btn-ghost h-9 w-9 px-0">
           <svg
             className="h-4 w-4"
             viewBox="0 0 20 20"
@@ -262,7 +290,7 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
               </button>
               <button
                 type="button"
-                className="btn-ghost text-red-600 hover:bg-red-50"
+                className="btn-ghost text-clay hover:bg-clay-soft"
                 onClick={() =>
                   openConfirmDialog({
                     title: "Delete recipe?",
@@ -290,14 +318,22 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
             name={name}
             notes={notes}
             url={url}
+            icon={icon}
             ingredients={ingredients}
             onNameChange={setName}
             onNotesChange={setNotes}
             onUrlChange={setUrl}
+            onIconChange={setIcon}
             onIngredientsChange={setIngredients}
           />
         ) : (
-          <RecipeSummary recipe={recipe} />
+          <RecipeSummary
+            recipe={recipe}
+            schedules={schedules}
+            onEditSchedule={(schedule) =>
+              openScheduleModal({ recipeId: recipe.id, schedule })
+            }
+          />
         )}
       </div>
     </div>
@@ -306,47 +342,97 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
 
 interface RecipeSummaryProps {
   recipe: Recipe;
+  schedules: Schedule[];
+  onEditSchedule: (schedule: Schedule) => void;
 }
 
 /** Read-only view of a recipe. */
-function RecipeSummary({ recipe }: RecipeSummaryProps) {
+function RecipeSummary({ recipe, schedules, onEditSchedule }: RecipeSummaryProps) {
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900">{recipe.name}</h3>
-        {recipe.notes ? (
-          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-            {recipe.notes}
-          </p>
-        ) : null}
-        {recipe.url ? (
-          <a
-            href={recipe.url}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="mt-2 inline-block break-all text-sm text-sky-700 underline hover:text-sky-900"
-          >
-            {recipe.url}
-          </a>
-        ) : null}
+      <div className="flex items-start gap-3">
+        <span className="recipe-icon h-14 w-14">
+          <RecipeIcon name={recipe.icon} className="h-6 w-6" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-2xl font-medium text-ink">{recipe.name}</h3>
+          {recipe.notes ? (
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
+              {recipe.notes}
+            </p>
+          ) : null}
+          {recipe.url ? (
+            <a
+              href={recipe.url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-2 inline-block break-all text-sm text-sage-ink underline decoration-sage-ink/40 underline-offset-2 hover:text-ink"
+            >
+              {recipe.url}
+            </a>
+          ) : null}
+        </div>
       </div>
 
       <div>
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Ingredients
-        </h4>
+        <h4 className="eyebrow">Ingredients</h4>
         {recipe.ingredients.length === 0 ? (
-          <p className="mt-1 text-sm text-slate-500">No ingredients listed.</p>
+          <p className="mt-1 text-sm text-muted">No ingredients listed.</p>
         ) : (
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-2 divide-y divide-line/70">
             {recipe.ingredients.map((ingredient) => (
-              <li key={ingredient.id} className="flex justify-between gap-3 text-sm">
-                <span className="text-slate-700">{ingredient.name}</span>
+              <li
+                key={ingredient.id}
+                className="flex justify-between gap-3 py-2 text-sm first:pt-0 last:pb-0"
+              >
+                <span className="text-ink-soft">{ingredient.name}</span>
                 {ingredient.quantity ? (
-                  <span className="shrink-0 text-slate-500">{ingredient.quantity}</span>
+                  <span className="shrink-0 text-muted">{ingredient.quantity}</span>
                 ) : null}
               </li>
             ))}
+          </ul>
+        )}
+      </div>
+
+      <div>
+        <div className="flex items-baseline justify-between gap-2">
+          <h4 className="eyebrow">Scheduled this month</h4>
+          <span className="rounded-full bg-sage-soft px-2 py-0.5 text-[10px] font-semibold text-sage-ink">
+            {schedules.length}
+          </span>
+        </div>
+        {schedules.length === 0 ? (
+          <p className="mt-2 text-sm text-muted">No schedules in the displayed month.</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {schedules.map((schedule) => {
+              const duration = daysInclusive(schedule.start_date, schedule.end_date);
+              return (
+                <li
+                  key={schedule.id}
+                  className="rounded-2xl border border-line bg-cream/60 px-3 py-2.5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">
+                        {formatDate(schedule.start_date)} → {formatDate(schedule.end_date)}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {duration} day{duration === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-secondary shrink-0 px-3 py-1.5 text-xs"
+                      onClick={() => onEditSchedule(schedule)}
+                    >
+                      Edit dates
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -363,10 +449,12 @@ interface RecipeFormProps {
   name: string;
   notes: string;
   url: string;
+  icon: RecipeIconName;
   ingredients: IngredientDraft[];
   onNameChange: (value: string) => void;
   onNotesChange: (value: string) => void;
   onUrlChange: (value: string) => void;
+  onIconChange: (value: RecipeIconName) => void;
   onIngredientsChange: (value: IngredientDraft[]) => void;
 }
 
@@ -375,10 +463,12 @@ function RecipeForm({
   name,
   notes,
   url,
+  icon,
   ingredients,
   onNameChange,
   onNotesChange,
   onUrlChange,
+  onIconChange,
   onIngredientsChange,
 }: RecipeFormProps) {
   const updateIngredient = (index: number, changes: Partial<IngredientDraft>) => {
@@ -391,6 +481,38 @@ function RecipeForm({
 
   return (
     <div className="space-y-4">
+      <div>
+        <span className="label">Icon</span>
+        <div
+          className="grid grid-cols-4 gap-2"
+          role="radiogroup"
+          aria-label="Recipe icon"
+        >
+          {RECIPE_ICON_OPTIONS.map((option) => {
+            const active = icon === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                aria-label={option.label}
+                title={option.label}
+                onClick={() => onIconChange(option.value)}
+                className={`flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-[11px] font-medium transition-colors ${
+                  active
+                    ? "border-sage-ink bg-sage-soft text-sage-ink shadow-sm"
+                    : "border-line-strong bg-paper text-muted hover:border-sage-ink/40 hover:bg-cream-deep hover:text-ink"
+                }`}
+              >
+                <RecipeIcon name={option.value} className="h-5 w-5" />
+                <span>{option.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div>
         <label className="label" htmlFor="recipe-name">
           Name
@@ -437,7 +559,7 @@ function RecipeForm({
           <span className="label mb-0">Ingredients</span>
           <button
             type="button"
-            className="btn-ghost px-2 py-1 text-xs"
+            className="btn-secondary px-3 py-1 text-xs"
             onClick={() => onIngredientsChange([...ingredients, { name: "", quantity: "" }])}
           >
             Add ingredient
@@ -445,7 +567,7 @@ function RecipeForm({
         </div>
 
         {ingredients.length === 0 ? (
-          <p className="text-sm text-slate-500">No ingredients yet.</p>
+          <p className="text-sm text-muted">No ingredients yet.</p>
         ) : (
           <ul className="space-y-2">
             {ingredients.map((ingredient, index) => (
@@ -466,7 +588,7 @@ function RecipeForm({
                 />
                 <button
                   type="button"
-                  className="btn-ghost px-2 text-slate-500 hover:text-red-600"
+                  className="btn-ghost px-2 text-muted hover:bg-clay-soft hover:text-clay"
                   onClick={() =>
                     onIngredientsChange(ingredients.filter((_, current) => current !== index))
                   }

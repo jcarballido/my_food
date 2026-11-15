@@ -12,6 +12,10 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
+/** Icons a recipe can display in the recipe drawer. */
+export const RECIPE_ICONS = ["utensils", "fish", "beef", "egg"] as const;
+export type RecipeIcon = (typeof RECIPE_ICONS)[number];
+
 export const recipes = pgTable(
   "recipes",
   {
@@ -19,6 +23,7 @@ export const recipes = pgTable(
     name: varchar("name", { length: 255 }).notNull(),
     notes: text("notes"),
     url: text("url"),
+    icon: varchar("icon", { length: 32 }).$type<RecipeIcon>().notNull().default("utensils"),
     createdBy: uuid("created_by").notNull(),
     updatedBy: uuid("updated_by").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -30,6 +35,10 @@ export const recipes = pgTable(
   },
   (table) => [
     uniqueIndex("recipes_name_unique").on(table.name),
+    check(
+      "recipes_icon_valid",
+      sql`${table.icon} in ('utensils', 'fish', 'beef', 'egg')`,
+    ),
   ],
 );
 

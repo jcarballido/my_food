@@ -1,4 +1,4 @@
-import type { RecipeIngredient, RecipeSchedule } from "@my_food/database";
+import type { RecipeIcon, RecipeIngredient, RecipeSchedule } from "@my_food/database";
 import { toIsoTimestamp } from "../utils/timestamps.js";
 
 /**
@@ -30,6 +30,7 @@ export interface ApiRecipe {
   name: string;
   notes: string | null;
   url: string | null;
+  icon: RecipeIcon;
   created_by: string;
   updated_by: string;
   created_at: string;
@@ -66,6 +67,7 @@ export function toApiRecipe(recipe: {
   name: string;
   notes: string | null;
   url: string | null;
+  icon: RecipeIcon;
   createdBy: string;
   updatedBy: string;
   createdAt: string;
@@ -77,6 +79,7 @@ export function toApiRecipe(recipe: {
     name: recipe.name,
     notes: recipe.notes ?? null,
     url: recipe.url ?? null,
+    icon: recipe.icon,
     created_by: recipe.createdBy,
     updated_by: recipe.updatedBy,
     created_at: toIsoTimestamp(recipe.createdAt),
@@ -90,6 +93,7 @@ export function toApiCalendarRecipe(recipe: {
   name: string;
   notes: string | null;
   url: string | null;
+  icon: RecipeIcon;
   createdBy: string;
   updatedBy: string;
   createdAt: string;

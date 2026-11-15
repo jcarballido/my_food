@@ -56,12 +56,17 @@ Requirements:
 - Display a list of saved recipes.
 - Allow users to select a recipe.
 - Selecting a recipe displays its details as another section within the drawer.
-- Recipe details include name, notes, URL, and ingredients.
+- Recipe details include icon, name, notes, URL, and ingredients.
+- Each recipe displays a Lucide icon. Recipes default to `utensils`; users can change it to `fish`, `beef`, or `egg` while editing.
+- The same icon appears in both the recipe list and the selected recipe's details.
 - Provide controls to edit and delete the selected recipe.
 - Support collapsing and expanding the drawer.
 - Do not provide a scheduling action within the drawer. Scheduling is initiated exclusively through the calendar.
 
-Dedicated schedule editing and deletion UI is deferred for this iteration (server/database CRUD capabilities remain available for future work).
+Schedules are edited from the selected recipe's details: each schedule shown for the
+displayed month can be reopened in the scheduling modal and its dates changed. Dedicated
+schedule deletion UI is deferred for this iteration (server/database CRUD capabilities
+remain available for future work).
 
 The recipe list and recipe details should not require separate application pages.
 
@@ -194,6 +199,7 @@ Optional fields:
 
 - Notes.
 - URL.
+- Icon (defaults to `utensils`).
 - Ingredients.
 
 Recipe names must be unique.
@@ -211,6 +217,7 @@ Editable fields:
 - Name.
 - Notes.
 - URL.
+- Icon (`utensils`, `fish`, `beef`, or `egg`).
 - Ingredients.
 
 Requirements:

@@ -44,30 +44,34 @@ export function CalendarGrid({
             <div
               key={weekIndex}
               style={{ minHeight: `${getWeekRowHeight(Math.max(0, ...segments.map((segment) => segment.lane + 1)))}px` }}
-              className="relative grid flex-1 grid-cols-7 border-b border-slate-200 last:border-b-0"
+              className="relative grid flex-1 grid-cols-7 border-b border-line/70 last:border-b-0"
             >
               {/* Day cells */}
-              {week.map((date) => {
+              {week.map((date, columnIndex) => {
                 const inMonth = isInMonth(date, year, month);
                 const isToday = date === today;
+                const isWeekend = columnIndex === 0 || columnIndex === 6;
+                const surface = !inMonth
+                  ? "bg-cream-deep/35"
+                  : isWeekend
+                    ? "bg-[#fcf8ef]"
+                    : "bg-paper";
 
                 return (
                   <button
                     key={date}
                     type="button"
                     onClick={() => onSelectDate(date)}
-                    className={`min-h-[104px] border-r border-slate-200 p-1.5 text-left align-top transition-colors last:border-r-0 hover:bg-slate-50 ${
-                      inMonth ? "bg-white" : "bg-slate-50/70"
-                    }`}
+                    className={`min-h-[104px] border-r border-line/70 p-1.5 text-left align-top transition-colors last:border-r-0 hover:bg-sage-soft/55 ${surface}`}
                     aria-label={`Schedule a recipe on ${date}`}
                   >
                     <span
                       className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-medium ${
                         isToday
-                          ? "bg-slate-900 text-white"
+                          ? "bg-sage-dark text-white shadow-sm"
                           : inMonth
-                            ? "text-slate-700"
-                            : "text-slate-400"
+                            ? "text-ink-soft"
+                            : "text-muted/70"
                       }`}
                     >
                       {Number(date.slice(8, 10))}

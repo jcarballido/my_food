@@ -9,6 +9,7 @@ import {
   type NewRecipeIngredient,
   type NewRecipeSchedule,
   type Recipe,
+  type RecipeIcon,
   type RecipeIngredient,
   type RecipeSchedule,
 } from "./schema.js";
@@ -26,6 +27,7 @@ export interface CreateRecipeInput {
   name: string;
   notes?: string | null;
   url?: string | null;
+  icon?: RecipeIcon;
   createdBy: string;
   updatedBy?: string;
 }
@@ -34,6 +36,7 @@ export interface UpdateRecipeInput {
   name?: string;
   notes?: string | null;
   url?: string | null;
+  icon?: RecipeIcon;
   updatedBy: string;
 }
 
@@ -57,6 +60,7 @@ export interface UpdateRecipeWithIngredientsInput {
   name?: string;
   notes?: string | null;
   url?: string | null;
+  icon?: RecipeIcon;
   updatedBy: string;
   /** When provided, replaces the recipe's complete ingredient set. */
   ingredients?: NewRecipeIngredientInput[];
@@ -126,6 +130,7 @@ export async function createRecipe(
       name: input.name,
       notes: input.notes ?? null,
       url: input.url ?? null,
+      icon: input.icon ?? "utensils",
       createdBy: input.createdBy,
       updatedBy: input.updatedBy ?? input.createdBy,
     })
@@ -194,6 +199,7 @@ export async function updateRecipe(
   if (input.name !== undefined) updateData.name = input.name;
   if (input.notes !== undefined) updateData.notes = input.notes;
   if (input.url !== undefined) updateData.url = input.url;
+  if (input.icon !== undefined) updateData.icon = input.icon;
 
   const [row] = await db
     .update(recipes)
@@ -337,6 +343,7 @@ export async function updateRecipeWithIngredients(
     if (input.name !== undefined) updateData.name = input.name;
     if (input.notes !== undefined) updateData.notes = input.notes;
     if (input.url !== undefined) updateData.url = input.url;
+    if (input.icon !== undefined) updateData.icon = input.icon;
 
     const [updated] = await tx
       .update(recipes)
@@ -454,6 +461,7 @@ export async function createRecipeWithSchedule(
         name: input.recipe.name,
         notes: input.recipe.notes ?? null,
         url: input.recipe.url ?? null,
+        icon: input.recipe.icon ?? "utensils",
         createdBy: input.recipe.createdBy,
         updatedBy: input.recipe.updatedBy ?? input.recipe.createdBy,
       })

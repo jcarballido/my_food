@@ -23,11 +23,14 @@ export function LoginScreen() {
   };
 
   return (
-    <main className="flex min-h-full items-center justify-center bg-slate-50 px-4 py-12">
+    <main className="flex min-h-full items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">My Food</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <div className="eyebrow">Welcome back</div>
+          <h1 className="mt-2 text-4xl font-medium tracking-tight text-ink">
+            Dnnr<span className="text-clay">.</span>
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-ink-soft">
             Sign in with your email to manage recipes and meal plans.
           </p>
         </div>
@@ -38,7 +41,7 @@ export function LoginScreen() {
           {notice ? (
             <div
               role="status"
-              className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
+              className="rounded-2xl border border-sage-ink/25 bg-sage-soft px-3.5 py-2.5 text-sm text-sage-ink"
             >
               {notice}
             </div>
@@ -68,7 +71,7 @@ export function LoginScreen() {
             {submitting ? "Sending…" : "Send sign-in link"}
           </button>
 
-          <p className="text-center text-xs text-slate-400">
+          <p className="text-center text-xs leading-relaxed text-muted">
             We will email you a link that signs you in. No password required.
           </p>
         </form>
