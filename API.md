@@ -86,10 +86,15 @@ Field names below are **snake_case** and are the exact JSON keys returned by the
   "recipe_id": "uuid",
   "start_date": "2026-11-10",
   "end_date": "2026-12-03",
+  "cook": "J",
   "created_at": "2026-11-13T09:41:00.000Z",
   "updated_at": "2026-11-13T09:41:00.000Z"
 }
 ```
+
+- `cook` is optional and belongs to the **schedule**, not the recipe. It is
+  `"J"`, `"H"`, or `null` when unset. The same recipe scheduled on different
+  dates may have different cook values.
 
 ### 2.4 Calendar recipe
 
@@ -202,10 +207,13 @@ The ingredient must belong to the recipe in the path, otherwise 404.
 Request body for POST / PATCH:
 
 ```json
-{ "start_date": "2026-11-10", "end_date": "2026-11-13" }
+{ "start_date": "2026-11-10", "end_date": "2026-11-13", "cook": "J" }
 ```
 
 - `end_date` must not precede `start_date` (400).
+- `cook` is optional: `"J"`, `"H"`, or `null` to clear it. It may be set or
+  changed after the dates are already saved. Omitting it on PATCH leaves the
+  stored value untouched.
 - Schedules may overlap; no uniqueness constraints apply.
 
 ### 3.5 Calendar

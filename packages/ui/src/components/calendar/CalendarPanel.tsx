@@ -21,7 +21,11 @@ export function CalendarPanel() {
   const load = useCalendarStore((state) => state.load);
 
   const selectRecipe = useRecipeStore((state) => state.select);
+  const removeSchedule = useCalendarStore((state) => state.removeSchedule);
+  const clearCalendarError = useCalendarStore((state) => state.clearError);
   const openScheduleModal = useUiStore((state) => state.openScheduleModal);
+  const openConfirmDialog = useUiStore((state) => state.openConfirmDialog);
+  const closeConfirmDialog = useUiStore((state) => state.closeConfirmDialog);
   const setDrawerOpen = useUiStore((state) => state.setDrawerOpen);
   const setMonth = useCalendarStore((state) => state.setMonth);
   const navigate = useUiStore((state) => state.navigate);
@@ -62,6 +66,27 @@ export function CalendarPanel() {
     [selectRecipe, setDrawerOpen, navigate],
   );
 
+  /**
+   * Removing a scheduled meal only deletes the schedule record. The recipe
+   * stays in the drawer and can be scheduled again later.
+   */
+  const handleDeleteSchedule = useCallback(
+    (recipeId: string, scheduleId: string, recipeName: string) => {
+      clearCalendarError();
+      openConfirmDialog({
+        title: "Remove scheduled meal?",
+        message: `Remove "${recipeName}" from the calendar? Only these scheduled dates are deleted — the recipe itself stays in your collection.`,
+        confirmLabel: "Remove from calendar",
+        destructive: true,
+        onConfirm: async () => {
+          const removed = await removeSchedule(recipeId, scheduleId);
+          if (removed) closeConfirmDialog();
+        },
+      });
+    },
+    [openConfirmDialog, closeConfirmDialog, removeSchedule, clearCalendarError],
+  );
+
   return (
     <section
       className="panel flex min-h-0 flex-1 flex-col overflow-hidden"
@@ -81,7 +106,7 @@ export function CalendarPanel() {
       {error ? (
         <div
           role="alert"
-          className="m-4 rounded-2xl border border-clay/30 bg-clay-soft px-4 py-3 text-sm text-[#7f3f30]"
+          className="m-4 rounded-2xl border border-clay/30 bg-clay-soft px-4 py-3 text-sm text-clay-ink"
         >
           {error}
         </div>
@@ -93,6 +118,7 @@ export function CalendarPanel() {
         year={year}
         onSelectDate={handleSelectDate}
         onSelectRecipe={handleSelectRecipe}
+        onDeleteSchedule={handleDeleteSchedule}
       />
     </section>
   );

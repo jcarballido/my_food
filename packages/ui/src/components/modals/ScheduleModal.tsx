@@ -9,6 +9,7 @@ import { ApiError } from "../../services/api.js";
 import { addDays, daysBetween, daysInclusive, isValidIsoDate, toIsoDate } from "../../utils/date.js";
 import { handleSessionError } from "../../stores/authStore.js";
 import { useBeforeUnload } from "../../hooks/useBeforeUnload.js";
+import type { ScheduleCook } from "../../types/api.js";
 
 type DateMode = "range" | "duration";
 
@@ -38,6 +39,8 @@ export function ScheduleModal() {
   const recipes = useRecipeStore((state) => state.recipes);
   const addRecipe = useRecipeStore((state) => state.load);
   const refreshCalendar = useCalendarStore((state) => state.load);
+  const removeSchedule = useCalendarStore((state) => state.removeSchedule);
+  const clearCalendarError = useCalendarStore((state) => state.clearError);
 
   const [workflow, setWorkflow] = useState<"existing" | "new">(mode);
   const [recipeId, setRecipeId] = useState<string>("");
@@ -49,6 +52,7 @@ export function ScheduleModal() {
   const [endDate, setEndDate] = useState("");
   const [duration, setDuration] = useState("1");
   const [dateMode, setDateMode] = useState<DateMode>("duration");
+  const [cook, setCook] = useState<ScheduleCook | "">("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [initialStart, setInitialStart] = useState("");
@@ -77,12 +81,14 @@ export function ScheduleModal() {
     );
     // Editing always starts from the exact saved range.
     setDateMode(editingSchedule ? "range" : "duration");
+    setCook(editingSchedule?.cook ?? "");
     setError(null);
     setSubmitting(false);
   }, [open, mode, preselectedDate, preselectedRecipeId, editingSchedule]);
 
   const dirty = open && Boolean(name || notes || url || ingredients.length ||
     recipeId !== (editingSchedule?.recipe_id ?? preselectedRecipeId ?? "") ||
+    cook !== (editingSchedule?.cook ?? "") ||
     startDate !== initialStart || endDate !== initialEnd);
   useBeforeUnload(dirty || submitting);
   const requestClose = () => {
@@ -192,11 +198,13 @@ export function ScheduleModal() {
         await recipeService.updateSchedule(editingSchedule.recipe_id, editingSchedule.id, {
           start_date: startDate,
           end_date: endDate,
+          cook: cook === "" ? null : cook,
         });
       } else if (workflow === "existing") {
         await recipeService.createSchedule(recipeId, {
           start_date: startDate,
           end_date: endDate,
+          cook: cook === "" ? null : cook,
         });
       } else {
         // New recipe plus its first schedule is a single atomic operation.
@@ -212,7 +220,11 @@ export function ScheduleModal() {
               name: ingredient.name.trim(),
               quantity: ingredient.quantity.trim().length > 0 ? ingredient.quantity.trim() : null,
             })),
-          schedule: { start_date: startDate, end_date: endDate },
+          schedule: {
+            start_date: startDate,
+            end_date: endDate,
+            cook: cook === "" ? null : cook,
+          },
         });
 
         // The recipe list must include the newly created recipe.
@@ -233,6 +245,34 @@ export function ScheduleModal() {
     }
   };
 
+  const editingRecipeName =
+    recipes.find((recipe) => recipe.id === editingSchedule?.recipe_id)?.name ??
+    "this meal";
+
+  /**
+   * Deletes only the schedule being edited. The recipe and its other
+   * schedules are left untouched.
+   */
+  const handleDeleteSchedule = () => {
+    if (!editingSchedule || submitting) return;
+    const { id, recipe_id } = editingSchedule;
+
+    clearCalendarError();
+    openConfirmDialog({
+      title: "Remove scheduled meal?",
+      message: `Remove "${editingRecipeName}" from the calendar? Only these scheduled dates are deleted — the recipe itself stays in your collection.`,
+      confirmLabel: "Remove from calendar",
+      destructive: true,
+      onConfirm: async () => {
+        const removed = await removeSchedule(recipe_id, id);
+        if (removed) {
+          closeConfirmDialog();
+          closeModal();
+        }
+      },
+    });
+  };
+
   return (
     <Modal
       open={open}
@@ -247,6 +287,16 @@ export function ScheduleModal() {
       busy={submitting}
       footer={
         <>
+          {isEditing ? (
+            <button
+              type="button"
+              className="btn-ghost mr-auto text-clay hover:bg-clay-soft"
+              onClick={handleDeleteSchedule}
+              disabled={submitting}
+            >
+              Delete schedule
+            </button>
+          ) : null}
           <button type="button" className="btn-secondary" onClick={requestClose} disabled={submitting}>
             Cancel
           </button>
@@ -510,6 +560,22 @@ export function ScheduleModal() {
                 />
               </div>
             )}
+          </div>
+
+          <div className="max-w-[12rem]">
+            <label className="label" htmlFor="schedule-cook">
+              Cook <span className="text-muted">(optional)</span>
+            </label>
+            <select
+              id="schedule-cook"
+              className="input"
+              value={cook}
+              onChange={(event) => setCook(event.target.value as ScheduleCook | "")}
+            >
+              <option value="">Not set</option>
+              <option value="J">J</option>
+              <option value="H">H</option>
+            </select>
           </div>
 
           {calculatedDuration > 0 ? (

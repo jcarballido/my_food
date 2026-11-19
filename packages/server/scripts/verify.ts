@@ -407,13 +407,48 @@ async function main(): Promise<void> {
       method: "POST",
       url: `/api/recipes/${recipeId}/schedules`,
       headers: auth,
-      payload: { start_date: "2026-11-10", end_date: "2026-11-13" },
+      payload: { start_date: "2026-11-10", end_date: "2026-11-13", cook: "J" },
     });
     assert.equal(ok.statusCode, 201);
     const schedule = ok.json().schedule;
     assert.equal(schedule.start_date, "2026-11-10");
     assert.equal(schedule.end_date, "2026-11-13");
     assert.equal(schedule.recipe_id, recipeId);
+    assert.equal(schedule.cook, "J");
+
+    const invalidCook = await instance.inject({
+      method: "POST",
+      url: `/api/recipes/${recipeId}/schedules`,
+      headers: auth,
+      payload: {
+        start_date: "2026-11-10",
+        end_date: "2026-11-13",
+        cook: "X",
+      },
+    });
+    assert.equal(invalidCook.statusCode, 400);
+
+    // The cook belongs to the schedule and can change after the dates are set.
+    const recooked = await instance.inject({
+      method: "PATCH",
+      url: `/api/recipes/${recipeId}/schedules/${schedule.id}`,
+      headers: auth,
+      payload: { cook: "H" },
+    });
+    assert.equal(recooked.statusCode, 200);
+    assert.equal(recooked.json().schedule.cook, "H");
+    assert.equal(recooked.json().schedule.start_date, "2026-11-10");
+
+    // An explicit null clears the cook without touching the dates.
+    const cleared = await instance.inject({
+      method: "PATCH",
+      url: `/api/recipes/${recipeId}/schedules/${schedule.id}`,
+      headers: auth,
+      payload: { cook: null },
+    });
+    assert.equal(cleared.statusCode, 200);
+    assert.equal(cleared.json().schedule.cook, null);
+    assert.equal(cleared.json().schedule.end_date, "2026-11-13");
 
     const list = await instance.inject({
       method: "GET",

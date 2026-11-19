@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "../../stores/authStore.js";
 import { ErrorBanner } from "../ui/Feedback.js";
+import { ThemeToggle } from "../ui/ThemeToggle.js";
 
 /**
  * Magic-link sign-in screen.
@@ -23,7 +24,11 @@ export function LoginScreen() {
   };
 
   return (
-    <main className="flex min-h-full items-center justify-center px-4 py-12">
+    <main className="relative flex min-h-full items-center justify-center px-4 py-12">
+      <div className="absolute right-4 top-4 sm:right-6 sm:top-6">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="eyebrow">Welcome back</div>

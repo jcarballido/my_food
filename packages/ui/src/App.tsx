@@ -3,6 +3,7 @@ import { CalendarPanel } from "./components/calendar/CalendarPanel.js";
 import { RecipeDrawer } from "./components/recipe/RecipeDrawer.js";
 import { ScheduleModal } from "./components/modals/ScheduleModal.js";
 import { ConfirmDialog } from "./components/ui/ConfirmDialog.js";
+import { ThemeToggle } from "./components/ui/ThemeToggle.js";
 import { LoginScreen } from "./components/auth/LoginScreen.js";
 import { Spinner } from "./components/ui/Feedback.js";
 import { useAuthStore } from "./stores/authStore.js";
@@ -27,6 +28,7 @@ export function App() {
 
   const loadRecipes = useRecipeStore((state) => state.load);
   const recipeError = useRecipeStore((state) => state.error);
+  const calendarError = useCalendarStore((state) => state.error);
   const drawerOpen = useUiStore((state) => state.drawerOpen);
   const toggleDrawer = useUiStore((state) => state.toggleDrawer);
   const confirmDialog = useUiStore((state) => state.confirmDialog);
@@ -113,6 +115,7 @@ export function App() {
           <span className="hidden rounded-full border border-line bg-paper/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted sm:inline">
             {session.user.email}
           </span>
+          <ThemeToggle />
           <button type="button" onClick={() => navigate(() => void signOut().catch(() => undefined))} className="btn-secondary">
             Sign out
           </button>
@@ -145,7 +148,7 @@ export function App() {
         confirmLabel={confirmDialog?.confirmLabel ?? "Confirm"}
         destructive={confirmDialog?.destructive}
         busy={confirmBusy}
-        error={confirmDialog?.destructive ? recipeError : null}
+        error={confirmDialog?.destructive ? recipeError ?? calendarError : null}
         onConfirm={handleConfirm}
         onCancel={closeConfirmDialog}
       />

@@ -63,6 +63,7 @@ export async function recipeRoutes(
       {
         startDate: schedule.start_date,
         endDate: schedule.end_date,
+        cook: schedule.cook ?? null,
       },
       request.authUser!.id,
     );

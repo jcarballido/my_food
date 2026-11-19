@@ -6,6 +6,7 @@ import type {
   RecipeUpdateInput,
   RecipeWithScheduleInput,
   Schedule,
+  ScheduleCook,
 } from "../types/api.js";
 
 /**
@@ -65,7 +66,7 @@ export const recipeService = {
   /** Adds a schedule to an existing recipe. */
   async createSchedule(
     recipeId: string,
-    input: { start_date: string; end_date: string },
+    input: { start_date: string; end_date: string; cook?: ScheduleCook | null },
   ): Promise<Schedule> {
     const { schedule } = await api.post<{ schedule: Schedule }>(
       `/api/recipes/${recipeId}/schedules`,
@@ -74,17 +75,26 @@ export const recipeService = {
     return schedule;
   },
 
-  /** Updates the dates of an existing schedule. */
+  /** Updates the dates or cook of an existing schedule. */
   async updateSchedule(
     recipeId: string,
     scheduleId: string,
-    input: { start_date: string; end_date: string },
+    input: {
+      start_date?: string;
+      end_date?: string;
+      cook?: ScheduleCook | null;
+    },
   ): Promise<Schedule> {
     const { schedule } = await api.patch<{ schedule: Schedule }>(
       `/api/recipes/${recipeId}/schedules/${scheduleId}`,
       input,
     );
     return schedule;
+  },
+
+  /** Removes a single schedule while keeping the recipe itself intact. */
+  async deleteSchedule(recipeId: string, scheduleId: string): Promise<void> {
+    await api.delete<void>(`/api/recipes/${recipeId}/schedules/${scheduleId}`);
   },
 
   async listSchedules(recipeId: string): Promise<Schedule[]> {

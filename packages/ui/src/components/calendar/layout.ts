@@ -5,23 +5,17 @@
  * positions cannot drift apart.
  */
 
-/** Height reserved for the date number at the top of each day cell. */
-export const DAY_HEADER_HEIGHT = 26;
+/** Height reserved for the date number at the top of each week row. */
+export const DAY_HEADER_HEIGHT = 36;
 
 /** Vertical space taken by a single bar lane, including the gap below it. */
 export const LANE_HEIGHT = 26;
 
-/** Minimum height of a week row, used when few recipes overlap. */
-export const MIN_WEEK_ROW_HEIGHT = 104;
-
 /**
- * Height a week row needs so that every bar lane fits inside it.
+ * Height of every week row.
  *
- * Bars are absolutely positioned and therefore do not contribute to the row
- * height, so the row has to be sized explicitly. Without this, a fourth
- * overlapping recipe would be painted over the following week.
+ * Rows are deliberately fixed: adding, moving or removing schedules must not
+ * resize the calendar or shift the dates around. When a week has more meals
+ * than fit, only that week's bar area scrolls.
  */
-export function getWeekRowHeight(maxLanes: number): number {
-  const required = DAY_HEADER_HEIGHT + Math.max(maxLanes, 1) * LANE_HEIGHT + 6;
-  return Math.max(MIN_WEEK_ROW_HEIGHT, required);
-}
+export const WEEK_ROW_HEIGHT = 148;

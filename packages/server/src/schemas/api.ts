@@ -1,4 +1,4 @@
-import type { RecipeIcon, RecipeIngredient, RecipeSchedule } from "@my_food/database";
+import type { RecipeIcon, RecipeIngredient, RecipeSchedule, ScheduleCook } from "@my_food/database";
 import { toIsoTimestamp } from "../utils/timestamps.js";
 
 /**
@@ -21,6 +21,7 @@ export interface ApiSchedule {
   recipe_id: string;
   start_date: string;
   end_date: string;
+  cook: ScheduleCook | null;
   created_at: string;
   updated_at: string;
 }
@@ -57,6 +58,7 @@ export function toApiSchedule(schedule: RecipeSchedule): ApiSchedule {
     recipe_id: schedule.recipeId,
     start_date: schedule.startDate,
     end_date: schedule.endDate,
+    cook: schedule.cook ?? null,
     created_at: toIsoTimestamp(schedule.createdAt),
     updated_at: toIsoTimestamp(schedule.updatedAt),
   };

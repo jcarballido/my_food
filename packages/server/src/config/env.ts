@@ -73,7 +73,7 @@ export function parseAllowedEmails(raw: string): Set<string> {
 
   for (const email of emails) {
     if (!EMAIL_PATTERN.test(email)) {
-      throw new Error(`ALLOWED_EMAILS contains an invalid email address: ${email}`);
+        throw new Error(`ALLOWED_EMAILS contains an invalid email address: ${email}`);
     }
   }
 

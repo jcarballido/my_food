@@ -38,7 +38,7 @@ export function RecipeDrawer({ open }: RecipeDrawerProps) {
   return (
     <aside
       hidden={!open}
-      className="flex w-full shrink-0 flex-col overflow-hidden rounded-[28px] border border-line bg-cream-deep/70 shadow-[0_28px_60px_-45px_rgba(47,58,50,0.55)] lg:w-96"
+      className="flex w-full shrink-0 flex-col overflow-hidden rounded-[28px] border border-line bg-cream-deep/70 shadow-[0_28px_60px_-45px_rgba(0,0,0,0.45)] lg:w-96"
       aria-label="Recipes"
     >
       {showDetail && selected ? (
@@ -133,6 +133,8 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
   const clearError = useRecipeStore((state) => state.clearError);
   const patchCalendarRecipe = useCalendarStore((state) => state.patchRecipe);
   const removeFromCalendar = useCalendarStore((state) => state.removeRecipe);
+  const removeScheduleFromCalendar = useCalendarStore((state) => state.removeSchedule);
+  const clearCalendarError = useCalendarStore((state) => state.clearError);
   const calendarRecipes = useCalendarStore((state) => state.recipes);
   const openConfirmDialog = useUiStore((state) => state.openConfirmDialog);
   const closeConfirmDialog = useUiStore((state) => state.closeConfirmDialog);
@@ -239,6 +241,20 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
     }
   };
 
+  const handleDeleteSchedule = (schedule: Schedule) => {
+    clearCalendarError();
+    openConfirmDialog({
+      title: "Remove scheduled meal?",
+      message: `Remove "${recipe.name}" from the calendar? Only these scheduled dates are deleted — the recipe itself stays in your collection.`,
+      confirmLabel: "Remove from calendar",
+      destructive: true,
+      onConfirm: async () => {
+        const removed = await removeScheduleFromCalendar(recipe.id, schedule.id);
+        if (removed) closeConfirmDialog();
+      },
+    });
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between border-b border-line/80 px-3 py-3">
@@ -333,6 +349,7 @@ function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
             onEditSchedule={(schedule) =>
               openScheduleModal({ recipeId: recipe.id, schedule })
             }
+            onDeleteSchedule={handleDeleteSchedule}
           />
         )}
       </div>
@@ -344,10 +361,16 @@ interface RecipeSummaryProps {
   recipe: Recipe;
   schedules: Schedule[];
   onEditSchedule: (schedule: Schedule) => void;
+  onDeleteSchedule: (schedule: Schedule) => void;
 }
 
 /** Read-only view of a recipe. */
-function RecipeSummary({ recipe, schedules, onEditSchedule }: RecipeSummaryProps) {
+function RecipeSummary({
+  recipe,
+  schedules,
+  onEditSchedule,
+  onDeleteSchedule,
+}: RecipeSummaryProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-3">
@@ -415,20 +438,39 @@ function RecipeSummary({ recipe, schedules, onEditSchedule }: RecipeSummaryProps
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-ink">
-                        {formatDate(schedule.start_date)} → {formatDate(schedule.end_date)}
+                      <p className="flex items-center gap-2 truncate text-sm font-medium text-ink">
+                        <span className="truncate">
+                          {formatDate(schedule.start_date)} → {formatDate(schedule.end_date)}
+                        </span>
+                        {schedule.cook ? (
+                          <span
+                            className="shrink-0 rounded-md border border-line bg-paper px-1.5 py-0.5 text-[10px] font-bold text-ink-soft"
+                            title={`Cook ${schedule.cook}`}
+                          >
+                            {schedule.cook}
+                          </span>
+                        ) : null}
                       </p>
                       <p className="mt-0.5 text-xs text-muted">
                         {duration} day{duration === 1 ? "" : "s"}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      className="btn-secondary shrink-0 px-3 py-1.5 text-xs"
-                      onClick={() => onEditSchedule(schedule)}
-                    >
-                      Edit dates
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        type="button"
+                        className="btn-secondary px-3 py-1.5 text-xs"
+                        onClick={() => onEditSchedule(schedule)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-ghost px-2.5 py-1.5 text-xs text-clay hover:bg-clay-soft"
+                        onClick={() => onDeleteSchedule(schedule)}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </li>
               );

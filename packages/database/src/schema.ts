@@ -16,6 +16,10 @@ import {
 export const RECIPE_ICONS = ["utensils", "fish", "beef", "egg"] as const;
 export type RecipeIcon = (typeof RECIPE_ICONS)[number];
 
+/** Who is cooking a scheduled meal. */
+export const SCHEDULE_COOKS = ["J", "H"] as const;
+export type ScheduleCook = (typeof SCHEDULE_COOKS)[number];
+
 export const recipes = pgTable(
   "recipes",
   {
@@ -67,6 +71,8 @@ export const recipeSchedules = pgTable(
     recipeId: uuid("recipe_id").notNull(),
     startDate: date("start_date", { mode: "string" }).notNull(),
     endDate: date("end_date", { mode: "string" }).notNull(),
+    /** Optional cook assigned to this scheduled meal, not to the recipe. */
+    cook: varchar("cook", { length: 1 }).$type<ScheduleCook>(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .notNull()
       .defaultNow(),
@@ -85,6 +91,10 @@ export const recipeSchedules = pgTable(
     check(
       "recipe_schedules_end_date_not_before_start_date",
       sql`${table.endDate} >= ${table.startDate}`,
+    ),
+    check(
+      "recipe_schedules_cook_valid",
+      sql`${table.cook} is null or ${table.cook} in ('J', 'H')`,
     ),
   ],
 );

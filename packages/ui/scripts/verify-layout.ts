@@ -26,12 +26,18 @@ async function test(name: string, fn: () => void | Promise<void>): Promise<void>
   }
 }
 
-function schedule(id: string, start: string, end: string): Schedule {
+function schedule(
+  id: string,
+  start: string,
+  end: string,
+  cook: Schedule["cook"] = null,
+): Schedule {
   return {
     id,
     recipe_id: `recipe-${id}`,
     start_date: start,
     end_date: end,
+    cook,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
   };
@@ -103,6 +109,39 @@ async function main(): Promise<void> {
     assert.equal(segments[0].lane, 0);
     assert.equal(segments[0].isStart, true);
     assert.equal(segments[0].isEnd, true);
+  });
+
+  await test("the schedule cook is carried into every segment", () => {
+    const layout = buildCalendarLayout(
+      [
+        calendarRecipe("a", [
+          schedule("s1", "2026-11-05", "2026-11-11", "J"),
+          schedule("s2", "2026-11-17", "2026-11-18", "H"),
+        ]),
+      ],
+      2026,
+      11,
+    );
+    const segments = layout.segmentsByWeek.flat();
+    assert.ok(segments.length >= 3);
+    for (const segment of segments) {
+      assert.equal(
+        segment.cook,
+        segment.scheduleId === "s1" ? "J" : "H",
+        "cook must stay attached to its own schedule",
+      );
+    }
+  });
+
+  await test("a schedule without a cook reports no cook", () => {
+    const layout = buildCalendarLayout(
+      [calendarRecipe("a", [schedule("s1", "2026-11-10", "2026-11-12")])],
+      2026,
+      11,
+    );
+    for (const segment of layout.segmentsByWeek.flat()) {
+      assert.equal(segment.cook, null);
+    }
   });
 
   await test("a schedule crossing a week boundary produces two segments", () => {

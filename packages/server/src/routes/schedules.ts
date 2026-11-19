@@ -44,6 +44,7 @@ export async function scheduleRoutes(
     const schedule = await service.createSchedule(params.data.id, {
       startDate: body.data.start_date,
       endDate: body.data.end_date,
+      cook: body.data.cook ?? null,
     });
     return reply.code(201).send({ schedule: toApiSchedule(schedule) });
   });
@@ -58,6 +59,7 @@ export async function scheduleRoutes(
     const schedule = await service.updateSchedule(params.data.id, params.data.scheduleId, {
       startDate: body.data.start_date,
       endDate: body.data.end_date,
+      cook: body.data.cook,
     });
     return reply.code(200).send({ schedule: toApiSchedule(schedule) });
   });

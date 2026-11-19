@@ -8,6 +8,9 @@
 /** Icons a recipe can display in the recipe drawer. */
 export type RecipeIconName = "utensils" | "fish" | "beef" | "egg";
 
+/** Optional cook assigned to a scheduled meal (not to the recipe). */
+export type ScheduleCook = "J" | "H";
+
 export interface Ingredient {
   id: string;
   recipe_id: string;
@@ -20,6 +23,8 @@ export interface Schedule {
   recipe_id: string;
   start_date: string;
   end_date: string;
+  /** Optional cook for this scheduled meal; independent of the recipe. */
+  cook: ScheduleCook | null;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +66,7 @@ export interface RecipeWithScheduleInput {
   schedule: {
     start_date: string;
     end_date: string;
+    cook?: ScheduleCook | null;
   };
 }
 

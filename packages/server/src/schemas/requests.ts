@@ -6,6 +6,7 @@ import {
   quantitySchema,
   recipeIconSchema,
   recipeNameSchema,
+  scheduleCookSchema,
   uuidSchema,
 } from "./common.js";
 
@@ -46,6 +47,7 @@ export const scheduleInputSchema = z
   .object({
     start_date: isoDateSchema,
     end_date: isoDateSchema,
+    cook: scheduleCookSchema.nullish(),
   })
   .refine((value) => value.end_date >= value.start_date, {
     message: "end_date cannot precede start_date",
@@ -56,10 +58,17 @@ export const scheduleUpdateSchema = z
   .object({
     start_date: isoDateSchema.optional(),
     end_date: isoDateSchema.optional(),
+    cook: scheduleCookSchema.nullish(),
   })
-  .refine((value) => value.start_date !== undefined || value.end_date !== undefined, {
-    message: "at least one field must be provided",
-  });
+  .refine(
+    (value) =>
+      value.start_date !== undefined ||
+      value.end_date !== undefined ||
+      value.cook !== undefined,
+    {
+      message: "at least one field must be provided",
+    },
+  );
 
 /** Body accepted by `POST /api/recipes/:id/schedules`. */
 export const scheduleBodySchema = scheduleInputSchema;

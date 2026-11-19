@@ -1,0 +1,2 @@
+ALTER TABLE "recipe_schedules" ADD COLUMN "cook" varchar(1);--> statement-breakpoint
+ALTER TABLE "recipe_schedules" ADD CONSTRAINT "recipe_schedules_cook_valid" CHECK ("recipe_schedules"."cook" is null or "recipe_schedules"."cook" in ('J', 'H'));

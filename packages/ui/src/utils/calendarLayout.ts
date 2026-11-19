@@ -10,7 +10,7 @@
 
 import { addDays, buildMonthGrid, chunkIntoWeeks, daysInclusive } from "./date.js";
 import { SCHEDULE_COLOR_COUNT } from "./scheduleColors.js";
-import type { CalendarRecipe, Schedule } from "../types/api.js";
+import type { CalendarRecipe, Schedule, ScheduleCook } from "../types/api.js";
 
 export interface CalendarSegment {
   /** Unique key for rendering. */
@@ -22,6 +22,8 @@ export interface CalendarSegment {
   startDate: string;
   /** Inclusive end date of the schedule. */
   endDate: string;
+  /** Optional cook assigned to this scheduled meal. */
+  cook: ScheduleCook | null;
   /** Index of the week row this segment belongs to. */
   weekIndex: number;
   /** First column (0-6) covered within the week row. */
@@ -232,6 +234,7 @@ export function buildCalendarLayout(
         scheduleId: segment.entry.schedule.id,
         startDate: segment.entry.schedule.start_date,
         endDate: segment.entry.schedule.end_date,
+        cook: segment.entry.schedule.cook ?? null,
         weekIndex,
         startColumn: segment.startColumn,
         endColumn: segment.endColumn,

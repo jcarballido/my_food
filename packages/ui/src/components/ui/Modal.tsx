@@ -29,7 +29,7 @@ export function Modal({ open, title, onClose, children, footer, busy = false }: 
     <dialog
       ref={ref}
       aria-labelledby={titleId}
-      className="m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-lg rounded-[28px] border border-line bg-paper p-0 shadow-[0_40px_90px_-40px_rgba(47,58,50,0.55)] backdrop:bg-ink/35"
+      className="m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-lg rounded-[28px] border border-line bg-paper p-0 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.45)] backdrop:bg-black/40"
       onCancel={(event) => {
         event.preventDefault();
         if (!busy) onClose();

@@ -40,7 +40,7 @@ export function ConfirmDialog({
       role="alertdialog"
       aria-labelledby="confirm-title"
       aria-describedby="confirm-message"
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-[28px] border border-line bg-paper p-0 shadow-[0_40px_90px_-40px_rgba(47,58,50,0.55)] backdrop:bg-ink/35"
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-[28px] border border-line bg-paper p-0 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.45)] backdrop:bg-black/40"
       onCancel={(event) => {
         event.preventDefault();
         if (!busy) onCancel();
@@ -62,7 +62,7 @@ export function ConfirmDialog({
         {error ? (
           <p
             role="alert"
-            className="mt-3 rounded-2xl border border-clay/30 bg-clay-soft px-3.5 py-2.5 text-sm text-[#7f3f30]"
+            className="mt-3 rounded-2xl border border-clay/30 bg-clay-soft px-3.5 py-2.5 text-sm text-clay-ink"
           >
             {error}
           </p>

@@ -12,6 +12,7 @@ import {
   type RecipeIcon,
   type RecipeIngredient,
   type RecipeSchedule,
+  type ScheduleCook,
 } from "./schema.js";
 
 /**
@@ -70,16 +71,19 @@ export interface CreateRecipeScheduleInput {
   recipeId: string;
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
+  cook?: ScheduleCook | null;
 }
 
 export interface NewRecipeScheduleInput {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
+  cook?: ScheduleCook | null;
 }
 
 export interface UpdateRecipeScheduleInput {
   startDate?: string; // YYYY-MM-DD
   endDate?: string; // YYYY-MM-DD
+  cook?: ScheduleCook | null;
 }
 
 export interface RecipeWithIngredients extends Recipe {
@@ -402,6 +406,7 @@ export async function createSchedule(
       recipeId: input.recipeId,
       startDate: input.startDate,
       endDate: input.endDate,
+      cook: input.cook ?? null,
     })
     .returning();
   return row;
@@ -418,6 +423,7 @@ export async function updateSchedule(
   };
   if (input.startDate !== undefined) updateData.startDate = input.startDate;
   if (input.endDate !== undefined) updateData.endDate = input.endDate;
+  if (input.cook !== undefined) updateData.cook = input.cook;
 
   const [row] = await db
     .update(recipeSchedules)
@@ -487,6 +493,7 @@ export async function createRecipeWithSchedule(
         recipeId: recipe.id,
         startDate: input.schedule.startDate,
         endDate: input.schedule.endDate,
+        cook: input.schedule.cook ?? null,
       })
       .returning();
 

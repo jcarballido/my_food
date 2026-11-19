@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { calendarService } from "../services/index.js";
+import { calendarService, recipeService } from "../services/index.js";
 import { ApiError } from "../services/api.js";
 import { handleSessionError } from "./authStore.js";
 import type { CalendarRecipe } from "../types/api.js";
@@ -20,6 +20,11 @@ export interface CalendarState {
     changes: Partial<Pick<CalendarRecipe, "name" | "notes" | "url" | "icon" | "ingredients">>,
   ) => void;
   removeRecipe: (recipeId: string) => void;
+  /**
+   * Deletes one scheduled meal from the calendar without removing the recipe.
+   * Returns `true` when the server confirmed the deletion.
+   */
+  removeSchedule: (recipeId: string, scheduleId: string) => Promise<boolean>;
   clearError: () => void;
   reset: () => void;
 }
@@ -81,6 +86,40 @@ export const useCalendarStore = create<CalendarState>((set, get) => {
       set((state) => ({
         recipes: state.recipes.filter((recipe) => recipe.id !== recipeId),
       })),
+
+    removeSchedule: async (recipeId, scheduleId) => {
+      set({ error: null });
+      try {
+        await recipeService.deleteSchedule(recipeId, scheduleId);
+        set((state) => ({
+          // Drop the schedule from the calendar copy; a recipe that has no
+          // remaining schedules in the displayed month disappears with it,
+          // but the recipe itself is untouched in the recipe store.
+          recipes: state.recipes
+            .map((recipe) =>
+              recipe.id === recipeId
+                ? {
+                    ...recipe,
+                    schedules: recipe.schedules.filter(
+                      (schedule) => schedule.id !== scheduleId,
+                    ),
+                  }
+                : recipe,
+            )
+            .filter((recipe) => recipe.schedules.length > 0),
+        }));
+        return true;
+      } catch (error) {
+        handleSessionError(error);
+        set({
+          error:
+            error instanceof ApiError
+              ? error.message
+              : "Unable to remove the scheduled meal.",
+        });
+        return false;
+      }
+    },
 
     clearError: () => set({ error: null }),
     reset: () => {

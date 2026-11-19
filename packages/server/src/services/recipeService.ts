@@ -24,6 +24,7 @@ import {
   type RecipeIngredient,
   type RecipeSchedule,
   type RecipeWithIngredients,
+  type ScheduleCook,
   type UpdateRecipeWithIngredientsInput,
 } from "@my_food/database";
 
@@ -72,6 +73,7 @@ export interface IngredientInput {
 export interface ScheduleInput {
   startDate: string;
   endDate: string;
+  cook?: ScheduleCook | null;
 }
 
 export class RecipeService {
@@ -125,6 +127,7 @@ export class RecipeService {
       schedule: {
         startDate: schedule.startDate,
         endDate: schedule.endDate,
+        cook: schedule.cook ?? null,
       },
     });
 
@@ -195,13 +198,14 @@ export class RecipeService {
       recipeId,
       startDate: input.startDate,
       endDate: input.endDate,
+      cook: input.cook ?? null,
     });
   }
 
   async updateSchedule(
     recipeId: string,
     scheduleId: string,
-    input: { startDate?: string; endDate?: string },
+    input: { startDate?: string; endDate?: string; cook?: ScheduleCook | null },
   ): Promise<RecipeSchedule> {
     const existing = await getScheduleById(this.db, recipeId, scheduleId);
     if (!existing) throw new NotFoundError("Schedule not found");

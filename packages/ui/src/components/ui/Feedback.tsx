@@ -44,7 +44,7 @@ export function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
   return (
     <div
       role="alert"
-      className="flex items-start justify-between gap-3 rounded-2xl border border-clay/30 bg-clay-soft px-3.5 py-2.5 text-sm text-[#7f3f30]"
+      className="flex items-start justify-between gap-3 rounded-2xl border border-clay/30 bg-clay-soft px-3.5 py-2.5 text-sm text-clay-ink"
     >
       <span>{message}</span>
       {onDismiss ? (

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Theme is driven by a `dark` class on <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * Visual theme inspired by `theme.tsx`.
  *
@@ -79,6 +82,10 @@
 
   --color-clay: #ad5b47;
   --color-clay-soft: #f8e7e1;
+  --color-clay-ink: #7f3f30;
+
+  /* Contrast colour for focus rings and primary accents. */
+  --color-focus-ring: #435a41;
 
   /* Warm stone neutrals for legacy `slate-*` utilities. */
   --color-slate-50: #f7f2e8;
@@ -93,11 +100,98 @@
   --color-slate-900: #2f3a32;
 }
 
+/*
+ * Dark theme.
+ *
+ * Only the theme tokens are swapped: every component uses the semantic
+ * `cream` / `paper` / `ink` / `line` / accent colours, so the utilities pick
+ * up the new values without per-component overrides. Pastel meal colours are
+ * darkened while keeping their inks light enough to stay readable.
+ */
+.dark {
+  --color-cream: #181b16;
+  --color-cream-deep: #21251e;
+  --color-paper: #262b23;
+
+  --color-ink: #e9e7db;
+  --color-ink-soft: #c0c6b7;
+  --color-muted: #8f9789;
+  --color-line: #353c33;
+  --color-line-strong: #485046;
+
+  --color-sage: #35422f;
+  --color-sage-soft: #2a3326;
+  --color-sage-ink: #cfe2c5;
+  --color-sage-deep: #3e4e37;
+  --color-sage-dark: #435a41;
+
+  --color-peach: #4a3427;
+  --color-peach-soft: #33241c;
+  --color-peach-ink: #f0c7ab;
+  --color-peach-deep: #573b2c;
+
+  --color-yellow: #47411f;
+  --color-yellow-soft: #2f2b16;
+  --color-yellow-ink: #efe1a3;
+  --color-yellow-deep: #544c25;
+
+  --color-lavender: #3e354b;
+  --color-lavender-soft: #2b2634;
+  --color-lavender-ink: #ddd0ef;
+  --color-lavender-deep: #483d57;
+
+  --color-sky: #2e3f49;
+  --color-sky-ink: #c3deed;
+  --color-sky-deep: #374a56;
+
+  --color-rose: #4b3136;
+  --color-rose-ink: #f2c6cc;
+  --color-rose-deep: #573a3f;
+
+  --color-mint: #2c4139;
+  --color-mint-ink: #c4e5da;
+  --color-mint-deep: #344d43;
+
+  --color-sand: #433b2a;
+  --color-sand-ink: #e6d5ae;
+  --color-sand-deep: #4f4632;
+
+  --color-periwinkle: #353a52;
+  --color-periwinkle-ink: #d2d7f2;
+  --color-periwinkle-deep: #3f4561;
+
+  --color-apricot: #4a3826;
+  --color-apricot-ink: #f3cfaa;
+  --color-apricot-deep: #56422e;
+
+  --color-teal: #2c4342;
+  --color-teal-ink: #c4e4e2;
+  --color-teal-deep: #344f4e;
+
+  --color-mauve: #453343;
+  --color-mauve-ink: #e8cfe1;
+  --color-mauve-deep: #513d4e;
+
+  --color-clay: #ad5b47;
+  --color-clay-soft: #3a2722;
+  --color-clay-ink: #f0b4a4;
+
+  --color-focus-ring: #a7c79c;
+}
+
 @layer base {
   html,
   body,
   #root {
     height: 100%;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
@@ -110,6 +204,12 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(88, 112, 74, 0.22), transparent 32rem),
+      radial-gradient(circle at 100% 100%, rgba(173, 91, 71, 0.14), transparent 30rem);
   }
 
   h1,
@@ -126,7 +226,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-sage-dark);
+    outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
   }
 
@@ -147,7 +247,7 @@
 }
 
 @utility btn-primary {
-  @apply btn bg-sage-dark text-white shadow-sm hover:bg-ink active:translate-y-px;
+  @apply btn bg-sage-dark text-white shadow-sm hover:brightness-110 active:translate-y-px;
 }
 
 @utility btn-secondary {
@@ -175,7 +275,7 @@
 }
 
 @utility card {
-  @apply rounded-[28px] border border-line bg-paper shadow-[0_28px_60px_-45px_rgba(47,58,50,0.55)];
+  @apply rounded-[28px] border border-line bg-paper shadow-[0_28px_60px_-45px_rgba(0,0,0,0.45)];
 }
 
 @utility eyebrow {
@@ -183,7 +283,7 @@
 }
 
 @utility panel {
-  @apply rounded-[28px] border border-line bg-paper shadow-[0_28px_60px_-45px_rgba(47,58,50,0.55)];
+  @apply rounded-[28px] border border-line bg-paper shadow-[0_28px_60px_-45px_rgba(0,0,0,0.45)];
 }
 
 /* Tile that holds a recipe's icon in the recipe drawer. */

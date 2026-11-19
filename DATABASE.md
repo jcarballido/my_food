@@ -125,6 +125,7 @@ Table: `recipe_schedules`
 | recipe_id | UUID | Required foreign key |
 | start_date | DATE | Required |
 | end_date | DATE | Required |
+| cook | VARCHAR(1) | Optional; `J`, `H`, or NULL |
 | created_at | TIMESTAMP | Automatically generated |
 | updated_at | TIMESTAMP | Automatically updated |
 
@@ -138,6 +139,11 @@ Requirements:
 - Deleting a schedule must not delete the recipe.
 - Deleting a recipe must automatically delete its associated schedules.
 - The ending date must not precede the starting date.
+- `cook` is optional and attributes a cook to the scheduled meal, not to the recipe.
+  It accepts exactly `J` or `H`, or NULL when unassigned (enforced by a check
+  constraint).
+- The same recipe may carry different `cook` values on different schedule records.
+- `cook` may be assigned or changed after the dates are set.
 - Use PostgreSQL DATE types because these represent calendar dates rather than timestamps.
 - Do not impose restrictions against overlapping date ranges unless explicitly requested.
 

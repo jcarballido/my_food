@@ -58,3 +58,6 @@ export const recipeNameSchema = z.string().trim().min(1, "name is required").max
 
 /** Recipe drawer icon. Defaults to `utensils` when omitted on creation. */
 export const recipeIconSchema = z.enum(["utensils", "fish", "beef", "egg"]);
+
+/** Optional cook assigned to a schedule. */
+export const scheduleCookSchema = z.enum(["J", "H"]);
